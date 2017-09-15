@@ -1,6 +1,15 @@
 class Blockchain():
     def __init__(self):
         self.blocks = []
+        self._generate_genesis()
+
+    def _generate_genesis(self):
+        genesis = Block()
+        genesis.previous_hash = 0
+        genesis.id = 0
+        genesis.data = {'info': 'ilk block'}
+        genesis.calculate_hash()
+        self.blocks.append(genesis)
 
     def get_all_blocks(self):
         return self.blocks
@@ -8,11 +17,7 @@ class Blockchain():
     def add_block(self, block):
         blocks_len = len(self.blocks)
         block.id = blocks_len
-        if blocks_len == 0:
-            block.previous_hash = 0
-        else:
-            block.previous_hash = self.blocks[blocks_len - 1].hash
-
+        block.previous_hash = self.blocks[blocks_len - 1].hash
         block.calculate_hash()
         self.blocks.append(block)
 

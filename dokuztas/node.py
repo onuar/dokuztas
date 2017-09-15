@@ -1,7 +1,7 @@
+import argparse
 from flask import Flask, jsonify, request
 import requests
 
-import argparse
 
 app = Flask(__name__)
 
@@ -30,7 +30,7 @@ def new_block_added_triggered():
     return jsonify({'status': 'ok'})
 
 
-@app.route('/add', methods=['GET'])
+@app.route('/add', methods=['POST'])
 def add_new_block():
     # tx'i alıp blockchain'e ver. o da block yaratsın.
     return jsonify({'status': 'ok'})
