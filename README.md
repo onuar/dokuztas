@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/onuar/dokuztas.svg?branch=master)](https://travis-ci.org/onuar/dokuztas)
+
 # Dokuz taş
 Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yapılmıştır. Proje hala yazım aşamasındadır. Sorularınız için Github'ın issues'ını kullanabilir ya da direkt twitter@onurgil ile bana ulaşabilirsiniz.
 
