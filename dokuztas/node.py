@@ -22,27 +22,46 @@ def connect_to_network(port):
     http_response = requests.post(
         'http://localhost:5001/connect', json=data)
     if http_response.status_code == 200:
-        print('Blockchain ağına bağlanıldı.')
+        print('>>> Bilgilendirme: Blockchain ağına bağlanıldı.')
     else:
         print('>>> Hata: {0}'.format(http_response.json()['message']))
 
 
-def init_chain(current_port, nodes=None):
+def create_chain():
+    global chain
+    print('>>> Bilgilendirme: Genesis-time:zero')
+    chain = Blockchain()
+
+
+def load_chain(current_port, nodes=None):
+    all_blocks = []
+    from requests.exceptions import ConnectionError
     for node in nodes:
         try:
             # kendi kendisine chain sormaması için.
             if(node != current_port):
                 http_response = requests.get(
                     'http://localhost:{0}/chain'.format(node))
-                # todo: gelen response'a göre, chain objesini güncelle.
-        except:
+                serialized = http_response.json()['blocks']
+                # todo: list of Block deserializer'ının yazılması gerekiyor
+                all_blocks.append((node, serialized))
+        except ConnectionError as con:
             print(
                 '>>> Bilgilendirme: {0} porta sahip node, online görünmüyor'.format(node))
+
+    print('>>> DEV: gelen diğer blocklar' + str(all_blocks))
+    if not chain:
+        # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, genesis gerçekleşir.
+        create_chain()
 
 
 @app.route('/chain', methods=['GET'])
 def get_chain():
-    return jsonify({'blocks': chain.blocks})
+    import json
+    serialized = json.dumps(
+        chain.blocks, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+    print('>>>> seri:' + str(serialized))
+    return jsonify({'blocks': serialized})
 
 
 @app.route('/mine', methods=['GET'])
@@ -85,14 +104,14 @@ def command_line_runner():
         mevcut node sayısı 1 ise, ilk node network'e bağlanmıştır. 
         bu durumda chain'in ilk kez yaratılması gerekir, doğal olarak da genesis'in.
         """
-        chain = Blockchain()
+        create_chain()
     else:
         """
         bu durumda, ağda başka node'lar var demektir. yani bir blockchain ve genesis block'u çoktan yaratılmıştır.
         ağa 1. olarak dahil olmayan tüm node'lar, giriş anlarında mevcut chain'i almaları gerekmektedir.
         """
 
-        init_chain(current_port, nodes=nodes)
+        load_chain(current_port, nodes=nodes)
     run(current_port)
 
 
