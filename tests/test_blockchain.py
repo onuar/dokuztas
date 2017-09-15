@@ -3,25 +3,22 @@ from dokuztas.blockchain import Blockchain, Block
 
 def test_when_blockchain_is_created_first_time_then_first_block_should_be_genesis_block():
     chain = Blockchain()
-    current_blocks = chain.get_all_blocks()
-    assert len(current_blocks) == 1
-    assert current_blocks[0].id == 0
+    assert len(chain.blocks) == 1
+    assert chain.blocks[0].id == 0
 
 
 def test_when_genesis_block_is_added_then_genesis_block_id_should_be_assigned_zero():
     chain = Blockchain()
     genesis_block = Block()
     chain.add_block(genesis_block)
-    current_blocks = chain.get_all_blocks()
-    assert current_blocks[0].id == 0
+    assert chain.blocks[0].id == 0
 
 
 def test_genesis_block_s_previous_block_hash_should_be_assigned_zero():
     chain = Blockchain()
     genesis_block = Block()
     chain.add_block(genesis_block)
-    current_blocks = chain.get_all_blocks()
-    assert current_blocks[0].previous_hash == 0
+    assert chain.blocks[0].previous_hash == 0
 
 
 def test_blocks_ids_should_increase_one_by_one():

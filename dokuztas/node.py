@@ -42,8 +42,7 @@ def init_chain(current_port, nodes=None):
 
 @app.route('/chain', methods=['GET'])
 def get_chain():
-    # blockchain'i serilize edip response olarak gönder.
-    return jsonify({'status': 'ok'})
+    return jsonify({'blocks': chain.blocks})
 
 
 @app.route('/mine', methods=['GET'])

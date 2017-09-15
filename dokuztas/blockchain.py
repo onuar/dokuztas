@@ -11,9 +11,6 @@ class Blockchain():
         genesis.calculate_hash()
         self.blocks.append(genesis)
 
-    def get_all_blocks(self):
-        return self.blocks
-
     def add_block(self, block):
         blocks_len = len(self.blocks)
         block.id = blocks_len
