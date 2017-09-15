@@ -9,7 +9,8 @@ nodes = []
 @app.route('/connect', methods=['POST'])
 def new_node_connected():
     new_node = request.json['port']
-    nodes.append(new_node)
+    if new_node not in nodes:
+        nodes.append(new_node)
     return jsonify({'status': 'ok'})
 
 

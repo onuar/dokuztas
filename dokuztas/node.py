@@ -1,3 +1,4 @@
+from blockchain import Block, Blockchain
 import argparse
 from flask import Flask, jsonify, request
 import requests
@@ -5,9 +6,11 @@ import requests
 
 app = Flask(__name__)
 
+chain = None
+
 
 def get_other_nodes():
-    http_response = requests.post(
+    http_response = requests.get(
         'http://localhost:5001/list')
     response = http_response.json()
     nodes = response["nodes"]
@@ -22,6 +25,25 @@ def connect_to_network(port):
         print('Blockchain ağına bağlanıldı.')
     else:
         print('>>> Hata: {0}'.format(http_response.json()['message']))
+
+
+def init_chain(current_port, nodes=None):
+    for node in nodes:
+        try:
+            # kendi kendisine chain sormaması için.
+            if(node != current_port):
+                http_response = requests.get(
+                    'http://localhost:{0}/chain'.format(node))
+                # todo: gelen response'a göre, chain objesini güncelle.
+        except:
+            print(
+                '>>> Bilgilendirme: {0} porta sahip node, online görünmüyor'.format(node))
+
+
+@app.route('/chain', methods=['GET'])
+def get_chain():
+    # blockchain'i serilize edip response olarak gönder.
+    return jsonify({'status': 'ok'})
 
 
 @app.route('/mine', methods=['GET'])
@@ -54,8 +76,25 @@ def get_parser():
 def command_line_runner():
     parser = get_parser()
     args = parser.parse_args()
-    connect_to_network(args.port)
-    run(args.port)
+    current_port = args.port
+
+    connect_to_network(current_port)
+
+    nodes = get_other_nodes()
+    if len(nodes) == 1:
+        """
+        mevcut node sayısı 1 ise, ilk node network'e bağlanmıştır. 
+        bu durumda chain'in ilk kez yaratılması gerekir, doğal olarak da genesis'in.
+        """
+        chain = Blockchain()
+    else:
+        """
+        bu durumda, ağda başka node'lar var demektir. yani bir blockchain ve genesis block'u çoktan yaratılmıştır.
+        ağa 1. olarak dahil olmayan tüm node'lar, giriş anlarında mevcut chain'i almaları gerekmektedir.
+        """
+
+        init_chain(current_port, nodes=nodes)
+    run(current_port)
 
 
 if __name__ == '__main__':
