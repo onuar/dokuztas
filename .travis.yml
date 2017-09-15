@@ -11,5 +11,4 @@ branches:
   only:
     - master
 
-script:
-    - echo "echohoho"
+script: pytest
