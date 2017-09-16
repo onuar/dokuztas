@@ -36,6 +36,7 @@ def create_chain():
 def load_chain(current_port, nodes=None):
     all_blocks = []
     from requests.exceptions import ConnectionError
+    import jsonpickle
     for node in nodes:
         try:
             # kendi kendisine chain sormaması için.
@@ -43,13 +44,15 @@ def load_chain(current_port, nodes=None):
                 http_response = requests.get(
                     'http://localhost:{0}/chain'.format(node))
                 serialized = http_response.json()['blocks']
-                # todo: list of Block deserializer'ının yazılması gerekiyor
-                all_blocks.append((node, serialized))
+                thawed = jsonpickle.decode(serialized)
+
+                all_blocks.append((node, thawed))
         except ConnectionError as con:
             print(
                 '>>> Bilgilendirme: {0} porta sahip node, online görünmüyor'.format(node))
-
-    print('>>> DEV: gelen diğer blocklar' + str(all_blocks))
+                
+    chain = Blockchain()
+    chain.blocks = all_blocks[0]
     if not chain:
         # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, genesis gerçekleşir.
         create_chain()
@@ -57,11 +60,9 @@ def load_chain(current_port, nodes=None):
 
 @app.route('/chain', methods=['GET'])
 def get_chain():
-    import json
-    serialized = json.dumps(
-        chain.blocks, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-    print('>>>> seri:' + str(serialized))
-    return jsonify({'blocks': serialized})
+    import jsonpickle
+    frozen = jsonpickle.encode(chain.blocks)
+    return jsonify({'blocks': frozen})
 
 
 @app.route('/mine', methods=['GET'])
