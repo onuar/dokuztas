@@ -92,5 +92,6 @@ ENV/
 .ropeproject
 
 
-# Sample-app
-node_modules/
+# IDE, text editors
+.vscode/
+.idea/
