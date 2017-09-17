@@ -4,8 +4,24 @@ from flask import Flask, jsonify, request
 import requests
 
 
-app = Flask(__name__)
+class NodeComponent(object):
+    def __init__(self):
+        self.chain = None
 
+    def create_genesis_chain(self):
+        self.chain = Blockchain()
+
+    def load_chain(self, nodes_chains):
+        pass
+
+    def mine(self, new_block):
+        pass
+
+    def add(self, new_block):
+        pass
+
+
+app = Flask(__name__)
 chain = None
 
 
@@ -109,9 +125,8 @@ def command_line_runner():
     else:
         """
         bu durumda, ağda başka node'lar var demektir. yani bir blockchain ve genesis block'u çoktan yaratılmıştır.
-        ağa 1. olarak dahil olmayan tüm node'lar, giriş anlarında mevcut chain'i almaları gerekmektedir.
+        ağa 1. olarak dahil olmayan tüm node'lar, giriş anlarında mevcut chain'i ve block'ları yüklemeleri gerekmektedir.
         """
-
         load_chain(current_port, nodes=nodes)
     run(current_port)
 

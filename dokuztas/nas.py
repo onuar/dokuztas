@@ -1,3 +1,7 @@
+# node address server
+from flask import Flask, jsonify, request
+
+
 class NasComponent(object):
     def __init__(self):
         self.nodes = []
@@ -10,25 +14,27 @@ class NasComponent(object):
         return self.nodes
 
 
-# node address server
-from flask import Flask, jsonify, request
-
 app = Flask(__name__)
-
 nasComponent = None
 
 
 @app.route('/connect', methods=['POST'])
 def new_node_connected():
-    new_node = request.json['port']
-    nasComponent.add_node(new_node)
-    return jsonify({'status': 'ok'})
+    try:
+        new_node = request.json['port']
+        nasComponent.add_node(new_node)
+        return jsonify({'status': 'ok'})
+    except Exception as exc:
+        return jsonify({'message': exc.message})
 
 
 @app.route('/list', methods=['GET'])
 def active_node_list():
-    nodes = nasComponent.get_nodes()
-    return jsonify({'nodes': nodes})
+    try:
+        nodes = nasComponent.get_nodes()
+        return jsonify({'nodes': nodes})
+    except Exception as exc:
+        return jsonify({'message': exc.message})
 
 
 if __name__ == '__main__':
