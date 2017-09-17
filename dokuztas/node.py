@@ -1,4 +1,5 @@
 from blockchain import Block, Blockchain
+from exceptions import ChainNotCreatedException
 import argparse
 from flask import Flask, jsonify, request
 import requests
@@ -13,6 +14,11 @@ class NodeComponent(object):
 
     def load_chain(self, nodes_chains):
         pass
+
+    def get_blocks(self):
+        if not self.chain:
+            raise ChainNotCreatedException()
+        return self.chain.blocks
 
     def mine(self, new_block):
         pass
@@ -49,14 +55,21 @@ def create_genesis_chain():
     chain = Blockchain()
 
 
+def merge_chains(node_chains):
+    global chain
+    chain = Blockchain()
+    chain.blocks = node_chains[0]
+
+
 def load_chain(current_port, nodes=None):
+    global chain
     all_blocks = []
     from requests.exceptions import ConnectionError
     import jsonpickle
     for node in nodes:
         try:
             # kendi kendisine chain sormaması için.
-            if(node != current_port):
+            if (node != current_port):
                 http_response = requests.get(
                     'http://localhost:{0}/chain'.format(node))
                 serialized = http_response.json()['blocks']
@@ -67,11 +80,15 @@ def load_chain(current_port, nodes=None):
             print(
                 '>>> Bilgilendirme: {0} porta sahip node, online görünmüyor'.format(node))
 
-    chain = Blockchain()
-    chain.blocks = all_blocks[0]
-    if not chain:
-        # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, genesis gerçekleşir.
+    if len(all_blocks) == 0:
+        # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, GENESIS gerçekleşir.
         create_genesis_chain()
+    else:
+        """
+        ağa daha önceden bağlanmış ve GENESIS'i oluşturmuş node'lar var demektir.
+        Sadece bunların yüklenmesi gerekir
+        """
+        merge_chains(all_blocks)
 
 
 @app.route('/chain', methods=['GET'])
@@ -113,6 +130,8 @@ def command_line_runner():
     args = parser.parse_args()
     current_port = args.port
 
+    if not current_port:
+        current_port = 5000
     connect_to_network(current_port)
 
     nodes = get_other_nodes()
