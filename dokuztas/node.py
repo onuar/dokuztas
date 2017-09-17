@@ -27,7 +27,7 @@ def connect_to_network(port):
         print('>>> Hata: {0}'.format(http_response.json()['message']))
 
 
-def create_chain():
+def create_genesis_chain():
     global chain
     print('>>> Bilgilendirme: Genesis-time:zero')
     chain = Blockchain()
@@ -50,12 +50,12 @@ def load_chain(current_port, nodes=None):
         except ConnectionError as con:
             print(
                 '>>> Bilgilendirme: {0} porta sahip node, online görünmüyor'.format(node))
-                
+
     chain = Blockchain()
     chain.blocks = all_blocks[0]
     if not chain:
         # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, genesis gerçekleşir.
-        create_chain()
+        create_genesis_chain()
 
 
 @app.route('/chain', methods=['GET'])
@@ -105,7 +105,7 @@ def command_line_runner():
         mevcut node sayısı 1 ise, ilk node network'e bağlanmıştır. 
         bu durumda chain'in ilk kez yaratılması gerekir, doğal olarak da genesis'in.
         """
-        create_chain()
+        create_genesis_chain()
     else:
         """
         bu durumda, ağda başka node'lar var demektir. yani bir blockchain ve genesis block'u çoktan yaratılmıştır.
