@@ -55,7 +55,8 @@ def create_genesis_chain():
     chain = Blockchain()
 
 
-def merge_chains(node_chains):
+def pick_honest_chain(node_chains):
+    # todo: en uzun ve demokratik seçim sonucu çoğunluktan gelen chain'i seç
     global chain
     chain = Blockchain()
     chain.blocks = node_chains[0]
@@ -88,7 +89,7 @@ def load_chain(current_port, nodes=None):
         ağa daha önceden bağlanmış ve GENESIS'i oluşturmuş node'lar var demektir.
         Sadece bunların yüklenmesi gerekir
         """
-        merge_chains(all_blocks)
+        pick_honest_chain(all_blocks)
 
 
 @app.route('/chain', methods=['GET'])
