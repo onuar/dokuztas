@@ -46,3 +46,11 @@ class Block():
         prv_hash_enc = str(self.previous_hash).encode('utf-8')
         sha.update(id_enc + data_enc + prv_hash_enc)
         self.hash = sha.hexdigest()
+
+
+class PendingBlock():
+    def __init__(self):
+        self.pending_txs = []
+
+    def add_txs(self, txs=[]):
+        self.pending_txs = txs
