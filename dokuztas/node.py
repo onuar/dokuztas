@@ -1,5 +1,5 @@
-from blockchain import Block, Blockchain
-from exceptions import ChainNotCreatedException
+from dokuztas.blockchain import Block, Blockchain, PendingBlock
+from dokuztas.exceptions import ChainNotCreatedException
 import argparse
 from flask import Flask, jsonify, request
 import requests
@@ -8,6 +8,8 @@ import requests
 class NodeComponent(object):
     def __init__(self):
         self.chain = None
+        self.pending_txs = []
+        self.pending_blocks = []
 
     def create_genesis_chain(self):
         self.chain = Blockchain()
@@ -20,15 +22,25 @@ class NodeComponent(object):
             raise ChainNotCreatedException()
         return self.chain.blocks
 
-    def mine(self, new_block):
+    def mine(self):
         pass
 
-    def add(self, new_block):
+    def block_added(self, new_block):
         pass
+
+    def add_transaction(self, tx):
+        self.pending_txs.append(tx)
+
+        if len(self.pending_txs) > 2400:
+            p_block = PendingBlock()
+            p_block.add_txs(self.pending_txs)
+            self.pending_blocks.append(p_block)
+            self.pending_txs = []
 
 
 app = Flask(__name__)
 chain = None
+node = NodeComponent()
 
 
 def get_other_nodes():
@@ -70,7 +82,7 @@ def load_chain(current_port, nodes=None):
     for node in nodes:
         try:
             # kendi kendisine chain sormaması için.
-            if (node != current_port):
+            if node != current_port:
                 http_response = requests.get(
                     'http://localhost:{0}/chain'.format(node))
                 serialized = http_response.json()['blocks']
