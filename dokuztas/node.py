@@ -1,8 +1,9 @@
-from dokuztas.blockchain import Block, Blockchain, PendingBlock
-from dokuztas.exceptions import ChainNotCreatedException
 import argparse
-from flask import Flask, jsonify, request
 import requests
+from flask import Flask, jsonify
+
+from .blockchain import Blockchain, PendingBlock
+from .exceptions import ChainNotCreatedException
 
 
 class NodeComponent(object):
@@ -14,8 +15,21 @@ class NodeComponent(object):
     def create_genesis_chain(self):
         self.chain = Blockchain()
 
+    def pick_honest_chain(self, node_chains):
+        # todo: en uzun ve demokratik seçim sonucu çoğunluktan gelen chain'i seç
+        self.chain = Blockchain()
+        self.chain.blocks = node_chains[0]
+
     def load_chain(self, nodes_chains):
-        pass
+        if len(nodes_chains) == 0:
+            # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, GENESIS gerçekleşir.
+            self.create_genesis_chain()
+        else:
+            """
+            ağa daha önceden bağlanmış ve GENESIS'i oluşturmuş node'lar var demektir.
+            Sadece bunların yüklenmesi gerekir
+            """
+            self.pick_honest_chain(nodes_chains)
 
     def get_blocks(self):
         if not self.chain:
@@ -39,8 +53,7 @@ class NodeComponent(object):
 
 
 app = Flask(__name__)
-chain = None
-node = NodeComponent()
+active_node = None
 
 
 def get_other_nodes():
@@ -61,21 +74,7 @@ def connect_to_network(port):
         print('>>> Hata: {0}'.format(http_response.json()['message']))
 
 
-def create_genesis_chain():
-    global chain
-    print('>>> Bilgilendirme: Genesis-time:zero')
-    chain = Blockchain()
-
-
-def pick_honest_chain(node_chains):
-    # todo: en uzun ve demokratik seçim sonucu çoğunluktan gelen chain'i seç
-    global chain
-    chain = Blockchain()
-    chain.blocks = node_chains[0]
-
-
 def load_chain(current_port, nodes=None):
-    global chain
     all_blocks = []
     from requests.exceptions import ConnectionError
     import jsonpickle
@@ -91,23 +90,15 @@ def load_chain(current_port, nodes=None):
                 all_blocks.append((node, thawed))
         except ConnectionError as con:
             print(
-                '>>> Bilgilendirme: {0} porta sahip node, online görünmüyor'.format(node))
+                '>>> Bilgilendirme: {0} porta sahip node offline olabilir'.format(node))
 
-    if len(all_blocks) == 0:
-        # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, GENESIS gerçekleşir.
-        create_genesis_chain()
-    else:
-        """
-        ağa daha önceden bağlanmış ve GENESIS'i oluşturmuş node'lar var demektir.
-        Sadece bunların yüklenmesi gerekir
-        """
-        pick_honest_chain(all_blocks)
+    active_node.load_chain(all_blocks)
 
 
 @app.route('/chain', methods=['GET'])
 def get_chain():
     import jsonpickle
-    frozen = jsonpickle.encode(chain.blocks)
+    frozen = jsonpickle.encode(active_node.chain.blocks)
     return jsonify({'blocks': frozen})
 
 
@@ -139,6 +130,8 @@ def get_parser():
 
 
 def command_line_runner():
+    active_node = NodeComponent()
+
     parser = get_parser()
     args = parser.parse_args()
     current_port = args.port
@@ -153,7 +146,7 @@ def command_line_runner():
         mevcut node sayısı 1 ise, ilk node network'e bağlanmıştır. 
         bu durumda chain'in ilk kez yaratılması gerekir, doğal olarak da genesis'in.
         """
-        create_genesis_chain()
+        active_node.create_genesis_chain()
     else:
         """
         bu durumda, ağda başka node'lar var demektir. yani bir blockchain ve genesis block'u çoktan yaratılmıştır.
