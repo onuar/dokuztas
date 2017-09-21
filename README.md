@@ -19,8 +19,8 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
 ## Demo (Public nodes)
     source dokuztas/venv/bin/activate
     python dokuztas/nas.py
-    python node-runner.py -p 5002
-    python node-runner.py -p 5003
+    python noderunner.py -p 5002
+    python noderunner.py -p 5003
 > todo: node.py ile dışarı açılan api'lerin dökümantasyonu yazılacak.
 
 ## Demo (Ledger)
