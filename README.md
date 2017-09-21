@@ -19,8 +19,8 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
 ## Demo (Public nodes)
     source dokuztas/venv/bin/activate
     python dokuztas/nas.py
-    python dokuztas/node.py -p 5002
-    python dokuztas/node.py -p 5003
+    python node-runner.py -p 5002
+    python node-runner.py -p 5003
 > todo: node.py ile dışarı açılan api'lerin dökümantasyonu yazılacak.
 
 ## Demo (Ledger)
@@ -40,7 +40,7 @@ python
 ## Yol haritası ve sonuç
 > Öncelikle şunu belirtmem gerekiyor, proje henüz tamamlanmadı. Şu an için blockchain oluşturup, içersinde block'lar ekleyebiliyorsunuz. Bunun yanında node'ları sisteme dahil etmek de tamamlandı.
 
-> Henüz nas ve node'ların testleri yazılmadı. Bunların tamamlanarak coverage'in artırılması gerekiyor.
+> Nas ve node için eksik testlerin yazılarak coverage'in artırılması gerekiyor.
 
 > Kod içersindeki dökümantasyonun artırılması gerekiyor. Bunun sistematik bir şekilde ilerlemesi gerekiyor.
 
@@ -49,8 +49,8 @@ python
 > README'ye, bu projeye teknik anlamda nasıl destek verilebileceği ile ilgili bir bilgi eklemek gerekiyor.
 
 > Tamamlandığında yapılabilecekler:
-    Yeni node eklemek
-    Node'ların block ekleyebilmesi
+    Yeni node eklemek (Checked!)
+    Node'ların block ekleyebilmesi (Checked!)
     Miner'ların problemi çözme işlemleri (proof of work)
     Miner ödül sistemi
     Public ve private key'ler ile başka kullanıcılar adına işlem yapılmasını önlemek
