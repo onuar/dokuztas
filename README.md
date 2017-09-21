@@ -56,7 +56,7 @@ python
     Public ve private key'ler ile başka kullanıcılar adına işlem yapılmasını önlemek
     
 # Açıklamalar
-### node.mine
+### node.mine()
 İlk mine işleminin tetiklenmesi, 10 tx'in eklenip, 11. tx'in gelmesi ile başlamaktadır. Bu işlem tamamlandığında, sırada bekleyen block'lar varsa bunlar mine edilir, yoksa bekleyen txs'ler mine edilmeye başlanılır. Her bekleyen 10 tx, 1 block'un içine eklenerek bekletilir. Örn:
 > 25 tane tx eklenmişse, 10'ardan iki tane block ve 5 tane block bekletilir. İlk olarak block'lar mine edilmeye başlanılır.
 
@@ -64,3 +64,6 @@ python
 Root hash'i hesaplamak için her bir ikili elemanın hash'i alınır, bunlar ayrıca hashlenir. Eğer listedeki eleman sayısı tek sayı ise, sonuncu elemanın hash'i ayrıca hesaplanır. Çıkan hash'ler aynı fonksiyona parametre olarak tekrar gönderilir. Örn:
 > 3 txs varsa 3. elemanın hashi ayrı hesaplanır, ilk iki elemanın hash'leri ayrı hesaplanır. hash_list'te iki tane hash olmuş olur. Bu iki hash'in de hash'lerinin hesaplanması için, fonksiyon tekrar çağırılır.
 > 2 txs varsa, iki txs'in hash'leri hesaplanır ve bu hash'ler birleştirilerek tekrar hash alınır. Sonuç olarak elde tek hash vardır ve bu root hash olarak geri döndürülür.
+
+### blockchain.mine()
+sırada bekleyen txs'lerin merkle root hash'lerini hesaplamak ve block'a eklemek içindir. 
