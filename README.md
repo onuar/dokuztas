@@ -37,7 +37,7 @@ python
     source dokuztas/venv/bin/activate
     pytest
 
-## Yol haritası ve sonuç
+# Yol haritası ve sonuç
 > Öncelikle şunu belirtmem gerekiyor, proje henüz tamamlanmadı. Şu an için blockchain oluşturup, içersinde block'lar ekleyebiliyorsunuz. Bunun yanında node'ları sisteme dahil etmek de tamamlandı.
 
 > Nas ve node için eksik testlerin yazılarak coverage'in artırılması gerekiyor.
@@ -54,3 +54,8 @@ python
     Miner'ların problemi çözme işlemleri (proof of work)
     Miner ödül sistemi
     Public ve private key'ler ile başka kullanıcılar adına işlem yapılmasını önlemek
+    
+# Açıklamalar
+### node.mine
+İlk mine işleminin tetiklenmesi, 10 tx'in eklenip, 11. tx'in gelmesi ile başlamaktadır. Bu işlem tamamlandığında, sırada bekleyen block'lar varsa bunlar mine edilir, yoksa bekleyen txs'ler mine edilmeye başlanılır. Her bekleyen 10 tx, 1 block'un içine eklenerek bekletilir. Örn:
+> 25 tane tx eklenmişse, 10'ardan iki tane block ve 5 tane block bekletilir. İlk olarak block'lar mine edilmeye başlanılır.

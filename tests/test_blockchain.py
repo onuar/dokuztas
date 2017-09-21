@@ -73,3 +73,23 @@ def test_if_a_block_is_changed_then_chain_should_not_be_a_valid_chain():
 
     validation = chain.validate()
     assert validation == False
+
+
+def test_if_there_is_just_one_tx_to_mine_then_its_hash_should_be_merkle_hash():
+    chain = Blockchain()
+    odd_hash = chain.calculate_merkle(['I shot the sheriff'])
+    assert odd_hash == 'f1254d09500291eb72966b263da07df061426fe6391873b640128bcf8abcf897'
+
+
+def test_if_pending_tx_count_is_odd_number_then_merkle_root_should_be_one_hash():
+    chain = Blockchain()
+    pending_txs = ['a', 'b', 'c', 'd', 'f']
+    root_hash = chain.calculate_merkle(pending_txs=pending_txs)
+    assert root_hash == 'dab4b3dd381a192214ffe6dfb8481f741be76e171dc298db75a44eb4df6d4213'
+
+
+def test_if_pending_tx_count_is_even_number_then_merkle_root_should_be_one_hash():
+    chain = Blockchain()
+    pending_txs = ['a', 'b', 'c', 'd', 'f', 'g']
+    root_hash = chain.calculate_merkle(pending_txs=pending_txs)
+    assert root_hash == '1adc308023cbce02e0d90cc31b096ea2a847548b966adc4c18d3f2ae654bfcb3'

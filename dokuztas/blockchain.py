@@ -1,5 +1,7 @@
 import hashlib as hasher
 
+from dokuztas.exceptions import *
+
 
 class Blockchain:
     def __init__(self):
@@ -31,6 +33,34 @@ class Blockchain:
 
         return True
 
+    def calculate_merkle(self, pending_txs):
+        hash_list = []
+        if len(pending_txs) % 2 == 1:
+            odd_tx = pending_txs[len(pending_txs) - 1].encode('utf-8')
+            odd_sha = hasher.sha256(odd_tx)
+            odd_hash = odd_sha.hexdigest()
+            pending_txs.remove(pending_txs[len(pending_txs) - 1])
+            hash_list.append(odd_hash)
+
+        if len(pending_txs) == 0:
+            return hash_list[0]
+
+        for i in range(0, len(pending_txs), 2):
+            tx_1_hash = hasher.sha256(pending_txs[i].encode('utf-8')).hexdigest()
+            tx_2_hash = hasher.sha256(pending_txs[i + 1].encode('utf-8')).hexdigest()
+            sha = hasher.sha256()
+            sha.update(tx_1_hash.encode('utf-8'))
+            sha.update(tx_2_hash.encode('utf-8'))
+            upper_hash = sha.hexdigest()
+            hash_list.append(upper_hash)
+
+        result = self.calculate_merkle(hash_list)
+        if isinstance(result, str):
+            return result
+
+    def mine(self, pending_block):
+        merkle_hash = self.calculate_merkle(pending_block.pending_txs)
+
 
 class Block:
     def __init__(self, data=None):
@@ -53,4 +83,6 @@ class PendingBlock:
         self.pending_txs = []
 
     def add_txs(self, txs=[]):
+        if len(txs) == 0:
+            raise PendingTxException()
         self.pending_txs = txs

@@ -3,12 +3,13 @@ import requests
 from flask import Flask, jsonify
 
 from dokuztas.blockchain import Blockchain, PendingBlock
-from dokuztas.exceptions import ChainNotCreatedException
+from dokuztas.exceptions import *
 
 
 class NodeComponent(object):
-    def __init__(self):
+    def __init__(self, miner=False):
         self.chain = None
+        self.miner = miner
         self.pending_txs = []
         self.pending_blocks = []
 
@@ -41,19 +42,40 @@ class NodeComponent(object):
         return self.chain.blocks
 
     def mine(self):
-        pass
+        if not self.miner:
+            raise MinerException()
+
+        if self.pending_blocks > 0:
+            self.chain.mine(self.pending_blocks[0])
 
     def block_added(self, new_block):
+        """
+        bu fonksiyon çağırıldığında diğer node'lardan biri block'u eklemiş demektir,
+        devam etmekte olan mine işlemi sonlandırılır
+        :param new_block:
+        :return:
+        """
+
         pass
 
     def add_transaction(self, tx):
+        """
+        node'lar tarafından eklenen tx'ler içindir.
+
+        mine işlemini, tx sayısı 10'a ulaştığında bir kez tetikler. sonrasında mine bir döngü
+        :param tx:
+        :return:
+        """
         self.pending_txs.append(tx)
 
-        if len(self.pending_txs) > 2400:
+        if len(self.pending_txs) > 10:
             p_block = PendingBlock()
             p_block.add_txs(self.pending_txs)
             self.pending_blocks.append(p_block)
             self.pending_txs = []
+
+            if len(self.pending_blocks) == 1 and self.miner:
+                self.mine()
 
 
 app = Flask(__name__)
