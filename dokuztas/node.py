@@ -17,6 +17,7 @@ class NodeComponent(object):
         self.chain = Blockchain()
 
     def pick_honest_chain(self, node_chains):
+        # consensus
         # todo: en uzun ve demokratik seçim sonucu çoğunluktan gelen chain'i seç
         print(">>> LOADED: Blocks")
         self.chain = Blockchain()
