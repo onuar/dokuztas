@@ -8,22 +8,10 @@ class Blockchain:
         self.blocks = []
         self.difficulty = 4
         self.mine_continue = True
-        self._generate_genesis()
 
     def _generate_genesis(self):
-        genesis = Block()
-        genesis.previous_hash = 0
-        genesis.id = 0
-        genesis.data = {'info': 'ilk block'}
-        genesis.calculate_hash()
+        genesis = Block(id=0, blockhash=0, previous_hash=0, nonce=0, merkleroot=0, data=['genesis'])
         self.blocks.append(genesis)
-
-    def add_block(self, block):
-        blocks_len = len(self.blocks)
-        block.id = blocks_len
-        block.previous_hash = self.blocks[blocks_len - 1].hash
-        block.calculate_hash()
-        self.blocks.append(block)
 
     def validate(self):
         blocks_len = len(self.blocks)
@@ -61,6 +49,7 @@ class Blockchain:
             return result
 
     def mine(self, pending_block):
+        self.mine_continue = True
         root_hash = self.calculate_merkle(pending_block.pending_txs)
         last_block = self.blocks[len(self.blocks) - 1]
         nonce = 0
@@ -80,24 +69,23 @@ class Blockchain:
                 # aranan nonce bulundu!
                 print('nonce bulundu! nonce: {0} block_hash: {1}'.format(str(nonce), blockhash))
                 self.mine_continue = False
+                new_id = len(self.blocks)
+                block_to_add = Block(id=new_id, blockhash=blockhash,
+                                     previous_hash=last_block.blockhash, nonce=nonce,
+                                     merkleroot=root_hash, data=pending_block.pending_txs)
+                self.blocks.append(block_to_add)
 
             nonce += 1
 
 
 class Block:
-    def __init__(self, data=None):
-        self.id = None
-        self.previous_hash = None
+    def __init__(self, id, blockhash, previous_hash, nonce, merkleroot, data):
+        self.id = id
+        self.blockhash = blockhash
+        self.previous_hash = previous_hash
+        self.nonce = nonce
+        self.merkleroot = merkleroot
         self.data = data
-        self.hash = None
-
-    def calculate_hash(self):
-        sha = hasher.sha256()
-        id_enc = str(self.id).encode('utf-8')
-        data_enc = str(self.data).encode('utf-8')
-        prv_hash_enc = str(self.previous_hash).encode('utf-8')
-        sha.update(id_enc + data_enc + prv_hash_enc)
-        self.hash = sha.hexdigest()
 
 
 class PendingBlock:
