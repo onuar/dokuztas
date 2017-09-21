@@ -2,8 +2,8 @@ import argparse
 import requests
 from flask import Flask, jsonify
 
-from .blockchain import Blockchain, PendingBlock
-from .exceptions import ChainNotCreatedException
+from dokuztas.blockchain import Blockchain, PendingBlock
+from dokuztas.exceptions import ChainNotCreatedException
 
 
 class NodeComponent(object):
@@ -13,14 +13,17 @@ class NodeComponent(object):
         self.pending_blocks = []
 
     def create_genesis_chain(self):
+        print(">>> GENESIS")
         self.chain = Blockchain()
 
     def pick_honest_chain(self, node_chains):
         # todo: en uzun ve demokratik seçim sonucu çoğunluktan gelen chain'i seç
+        print(">>> LOADED: Blocks")
         self.chain = Blockchain()
         self.chain.blocks = node_chains[0]
 
     def load_chain(self, nodes_chains):
+        print(str(nodes_chains))
         if len(nodes_chains) == 0:
             # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, GENESIS gerçekleşir.
             self.create_genesis_chain()
@@ -97,8 +100,12 @@ def load_chain(current_port, nodes=None):
 
 @app.route('/chain', methods=['GET'])
 def get_chain():
-    import jsonpickle
-    frozen = jsonpickle.encode(active_node.chain.blocks)
+    frozen = None
+    try:
+        import jsonpickle
+        frozen = jsonpickle.encode(active_node.chain.blocks)
+    except Exception as exc:
+        print(">>> HATA /chain: {0}".format(str(exc)))
     return jsonify({'blocks': frozen})
 
 
@@ -130,6 +137,7 @@ def get_parser():
 
 
 def command_line_runner():
+    global active_node
     active_node = NodeComponent()
 
     parser = get_parser()
