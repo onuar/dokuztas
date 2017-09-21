@@ -1,4 +1,7 @@
-class Blockchain():
+import hashlib as hasher
+
+
+class Blockchain:
     def __init__(self):
         self.blocks = []
         self._generate_genesis()
@@ -29,10 +32,7 @@ class Blockchain():
         return True
 
 
-import hashlib as hasher
-
-
-class Block():
+class Block:
     def __init__(self, data=None):
         self.id = None
         self.previous_hash = None
@@ -48,7 +48,7 @@ class Block():
         self.hash = sha.hexdigest()
 
 
-class PendingBlock():
+class PendingBlock:
     def __init__(self):
         self.pending_txs = []
 
