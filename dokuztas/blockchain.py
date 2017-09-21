@@ -6,6 +6,8 @@ from dokuztas.exceptions import *
 class Blockchain:
     def __init__(self):
         self.blocks = []
+        self.difficulty = 4
+        self.mine_continue = True
         self._generate_genesis()
 
     def _generate_genesis(self):
@@ -59,7 +61,27 @@ class Blockchain:
             return result
 
     def mine(self, pending_block):
-        merkle_hash = self.calculate_merkle(pending_block.pending_txs)
+        root_hash = self.calculate_merkle(pending_block.pending_txs)
+        last_block = self.blocks[len(self.blocks) - 1]
+        nonce = 0
+        sha = hasher.sha256()
+        root_hash_enc = str(root_hash).encode('utf-8')
+        prv_hash_enc = str(last_block.previous_hash).encode('utf-8')
+        block_id_enc = str(last_block.id).encode('utf-8')
+        challenge_string = root_hash_enc + prv_hash_enc + block_id_enc
+        sha.update(challenge_string)
+        difficulty_indicator = ''.join(["0" for x in range(0, self.difficulty)])
+        while self.mine_continue:
+            nonce_enc = str(nonce).encode('utf-8')
+            sha.update(nonce_enc)
+
+            blockhash = sha.hexdigest()
+            if blockhash[0:self.difficulty] == difficulty_indicator:
+                # aranan nonce bulundu!
+                print('nonce bulundu! nonce: {0} block_hash: {1}'.format(str(nonce), blockhash))
+                self.mine_continue = False
+
+            nonce += 1
 
 
 class Block:

@@ -1,4 +1,4 @@
-from dokuztas.blockchain import Blockchain, Block
+from dokuztas.blockchain import Blockchain, Block, PendingBlock
 
 
 def test_when_blockchain_is_created_first_time_then_first_block_should_be_genesis_block():
@@ -93,3 +93,11 @@ def test_if_pending_tx_count_is_even_number_then_merkle_root_should_be_one_hash(
     pending_txs = ['a', 'b', 'c', 'd', 'f', 'g']
     root_hash = chain.calculate_merkle(pending_txs=pending_txs)
     assert root_hash == '1adc308023cbce02e0d90cc31b096ea2a847548b966adc4c18d3f2ae654bfcb3'
+
+
+def test_mine_tester():
+    chain = Blockchain()
+    chain._generate_genesis()
+    p = PendingBlock()
+    p.add_txs(['a', 'b', 'c', 'd', 'f'])
+    chain.mine(p)
