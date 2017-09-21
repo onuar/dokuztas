@@ -18,7 +18,7 @@ class Blockchain:
         if blocks_len == 0 or blocks_len == 1:
             return True
         for i in range(1, blocks_len):
-            if self.blocks[i].previous_hash != self.blocks[i - 1].hash:
+            if self.blocks[i].previous_hash != self.blocks[i - 1].blockhash:
                 return False
 
         return True
