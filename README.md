@@ -29,8 +29,16 @@ source dokuztas/venv/bin/activate
 python
 >>> from dokuztas.blockchain import Blockchain, Block
 >>> chain = Blockchain()
->>> new_block = Block()
->>> chain.add_block(new_block)
+>>> chain._generate_genesis()
+>>> new_block = PendingBlock()
+>>> txs = ['Barış, Fırat\'a 100 coin gönderdi',
+            'Fırat, İrgin\'e 50 coin gönderdi',
+            'İrgin, Mert\'e 25 coin gönderdi',
+            'Mert, Onur\'a 12,5 coin gönderdi',
+            'Onur, Özgen\'e 6,25 coin gönderdi',
+            'Özgen, Uğur\'a 3,125 coin gönderdi']
+>>> new_block.add_txs(txs=txs)
+>>> chain.mine(new_block)
 ```
 
 # Testleri çalıştırmak için
