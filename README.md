@@ -3,27 +3,38 @@
 # Dokuz taş
 Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yapılmıştır. Proje hala yazım aşamasındadır. Sorularınız için Github'ın issues'ını kullanabilir ya da direkt [twitter@onurgil](https://twitter.com/onurgil) ile bana ulaşabilirsiniz.
 
-## İhtiyaçlar
+## Versiyonlar
+### 0.0.1
+* Merkle root hash'inin hesaplanması
+* Chain yaratma
+* Genesis block ekleme
+* Block ekleme
+* Mining
+* Node'ların ağa dahil olması
+* Ağa sonradan dahil olan node'un, diğer node'lardan block'ları alması (sync)
+
+## Kurulum ve test
+
+### Kurulum ihtiyaçları
     python 3.6.2
     virtualenv
     pip
 > Homebrew ile kurmak işinizi kolaylaştıracaktır.
 
-## Kurulum
+### Kurulum
     git clone https://github.com/onuar/dokuztas.git
     cd dokuztas
     virtualenv -p python3 dokuztas/venv
     source dokuztas/venv/bin/activate
     pip install -r requirements.txt
 
-## Demo (Public nodes)
+### Demo (Public nodes)
     source dokuztas/venv/bin/activate
     python dokuztas/nas.py
     python noderunner.py -p 5002
     python noderunner.py -p 5003
-> todo: node.py ile dışarı açılan api'lerin dökümantasyonu yazılacak.
 
-## Demo (Ledger)
+### Demo (Ledger ve mining)
 ```python
 source dokuztas/venv/bin/activate
 python
@@ -41,29 +52,11 @@ python
 >>> chain.mine(new_block)
 ```
 
-# Testleri çalıştırmak için
+### Testleri çalıştırmak için
     source dokuztas/venv/bin/activate
     pytest
 
-# Yol haritası ve sonuç
-> Öncelikle şunu belirtmem gerekiyor, proje henüz tamamlanmadı. Şu an için blockchain oluşturup, içersinde block'lar ekleyebiliyorsunuz. Bunun yanında node'ları sisteme dahil etmek de tamamlandı.
-
-> Nas ve node için eksik testlerin yazılarak coverage'in artırılması gerekiyor.
-
-> Kod içersindeki dökümantasyonun artırılması gerekiyor. Bunun sistematik bir şekilde ilerlemesi gerekiyor.
-
-> Windows ortamında test edilip, README sayfasının buna uygun değiştirilmesi gerekiyor.
-
-> README'ye, bu projeye teknik anlamda nasıl destek verilebileceği ile ilgili bir bilgi eklemek gerekiyor.
-
-> Tamamlandığında yapılabilecekler:
-    Yeni node eklemek (Checked!)
-    Node'ların block ekleyebilmesi (Checked!)
-    Miner'ların problemi çözme işlemleri (proof of work)
-    Miner ödül sistemi
-    Public ve private key'ler ile başka kullanıcılar adına işlem yapılmasını önlemek
-    
-# Açıklamalar
+## Açıklamalar
 ### node.mine()
 İlk mine işleminin tetiklenmesi, 10 tx'in eklenip, 11. tx'in gelmesi ile başlamaktadır. Bu işlem tamamlandığında, sırada bekleyen block'lar varsa bunlar mine edilir, yoksa bekleyen txs'ler mine edilmeye başlanılır. Her bekleyen 10 tx, 1 block'un içine eklenerek bekletilir. Örn:
 > 25 tane tx eklenmişse, 10'ardan iki tane block ve 5 tane block bekletilir. İlk olarak block'lar mine edilmeye başlanılır.
@@ -74,4 +67,16 @@ Root hash'i hesaplamak için her bir ikili elemanın hash'i alınır, bunlar ayr
 > 2 txs varsa, iki txs'in hash'leri hesaplanır ve bu hash'ler birleştirilerek tekrar hash alınır. Sonuç olarak elde tek hash vardır ve bu root hash olarak geri döndürülür.
 
 ### blockchain.mine()
-sırada bekleyen txs'lerin merkle root hash'lerini hesaplamak ve block'a eklemek içindir. 
+sırada bekleyen txs'lerin merkle root hash'lerini hesaplamak ve block'a eklemek içindir.
+ 
+## Yol haritası
+* Kod içersindeki dökümantasyonun artırılması.
+* Windows ve Linux dağıtımlarından birinde test edilip, README sayfasının buna uygun değiştirilmesi.
+* README'ye, bu projeye teknik anlamda nasıl destek verilebileceği ile ilgili bir bilgi eklemek.
+
+### Eklenecek özellikler
+* Bekleyen transaction'lar (txs) ve bekleyen block'ların sıra ile mining işlemine alınması.
+* Bir node ağa dahil olduğunda, ağa daha önceden bağlanmış olan node'lardan block'ları almalı ve en uygun (honest) block'u doğru olarak kabul etmeli. (consensus).
+* Ağdaki node'ların block'ları manuple edemeyeceğini göstermek için, "/hack" adı altında bir resource eklenmesi. Bu /hack, basitçe mevcut block'taki bir tx'i değiştirip hash'leri tekrar hesaplayacak ve bu yeni chain'i diğer node'ların demokratik seçimine bırakacak. Sonuç olarak ağda dolaşan chain'in değiştirilemediği görülecek (immutability).
+* (belki) Private ve public key'ler ile, tx'i ekleyen kişinin doğrulamasının yapılması.
+* (belki) tx'lerin içerdiği data, cryptocurrency'lerde olduğu gibi from, to, amount içerecek şekilde değiştirilirse, double-spending engelleme kontrollerinin eklenmesi.
