@@ -91,8 +91,8 @@ class Blockchain:
         challenge_string = root_hash_enc + prv_hash_enc + block_id_enc
         sha.update(challenge_string)
         difficulty_indicator = ''.join(["0" for x in range(0, self.difficulty)])
-        is_stopped = not stop_mining_check()
-        while mine_continue and is_stopped:
+        while mine_continue and not stop_mining_check():
+            # _log('debug', 'Mining iter {0}'.format(str(nonce)))
             nonce_enc = str(nonce).encode('utf-8')
             sha.update(nonce_enc)
 
@@ -106,7 +106,6 @@ class Blockchain:
                                      previous_hash=last_block.blockhash, nonce=nonce,
                                      merkleroot=root_hash, data=pending_block.pending_txs)
                 self.blocks.append(block_to_add)
-
                 if cb_block_found:
                     cb_block_found()
 

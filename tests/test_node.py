@@ -78,29 +78,31 @@ def test_for_mining_it_should_be_start_new_thread():
     assert mock.called
 
 
-def test_if_correct_hash_is_found_then_block_found_function_should_be_called_once():
-    from dokuztas.blockchain import Blockchain, PendingBlock
-    patcher = patch('dokuztas._internals.MiningThread.stop')
-    mock = patcher.start()
+# def test_if_correct_hash_is_found_then_block_found_function_should_be_called_once():
+#     from dokuztas.blockchain import Blockchain, PendingBlock
+#     patcher = patch('dokuztas._internals.MiningThread.stop')
+#     mock = patcher.start()
+#     node = NodeComponent(miner=True)
+#     node.chain = Blockchain(difficulty=2)
+#     node.chain._generate_genesis()
+#     pending_block = PendingBlock()
+#     pending_block.add_txs(['a', 'b', 'c'])
+#     node.pending_blocks.append(pending_block)
+#     node.mine()
+#     patcher.stop()
+#     assert mock.called
+
+
+def test_any_other_node_found_correct_hash_then_mining_should_be_stopped():
+    from dokuztas.blockchain import Blockchain, PendingBlock, Block
     node = NodeComponent(miner=True)
-    node.chain = Blockchain(difficulty=1)
+    node.chain = Blockchain(difficulty=10)
     node.chain._generate_genesis()
     pending_block = PendingBlock()
     pending_block.add_txs(['a', 'b', 'c'])
     node.pending_blocks.append(pending_block)
     node.mine()
-    patcher.stop()
-    assert mock.called
 
-
-def test_any_other_node_found_correct_hash_then_mining_should_be_stoped():
-    # from dokuztas.blockchain import Block
-    # chain_patcher = patch('dokuztas.node.NodeComponent.chain.mine')
-    # pending_block_patcher = patch('dokuztas.node.NodeComponent.pending_blocks.remove')
-    # chain_patcher.start()
-    # pending_block_patcher.start()
-    # node = NodeComponent(miner=True)
-    # node.create_genesis_chain()
-    # block_to_add = Block()
-    # node.block_added(block_to_add)
-    pass
+    block_to_add = Block(id=123, previous_hash=0, nonce=123, merkleroot=123, blockhash=111, data=['a', 'b', 'c'])
+    node.block_added(block_to_add)
+    assert node.chain.blocks[1].blockhash == 111

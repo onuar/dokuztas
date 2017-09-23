@@ -108,11 +108,10 @@ class NodeComponent(object):
 
         :param new_block: Yeni eklenen block.
         """
+        _log('debug', 'block_added')
         self.miner_check()
-
         self.stop_mining = True
         self.pending_blocks.remove(self.pending_blocks[0])
-
         self.chain.blocks.append(new_block)
 
 
