@@ -1,4 +1,11 @@
-# node address server
+"""
+Node Address Server
+
+Ağa bağlanan node'ların birbirinden haberdar olması için kullanılır.
+
+Ağı başlatmadan önce ayağa kalkmış olması gerekmektedir. 5001 portundan sunulur.
+Node.py değiştirilmeden, port bilgisi de değiştirilmemelidir.
+"""
 from flask import Flask, jsonify, request
 
 
@@ -20,6 +27,9 @@ nasComponent = None
 
 @app.route('/connect', methods=['POST'])
 def new_node_connected():
+    """
+    Ağa yeni bir node eklendi!
+    """
     try:
         new_node = request.json['port']
         nasComponent.add_node(new_node)
@@ -30,6 +40,11 @@ def new_node_connected():
 
 @app.route('/list', methods=['GET'])
 def active_node_list():
+    """
+    Bir node (kim olduğunun bir önemi yok), ağdaki diğer node'larla haberleşmek için node listesini istiyor!
+
+    :return tüm tree'nin hash'i. Node listesini string array olarak döner.
+    """
     try:
         nodes = nasComponent.get_nodes()
         return jsonify({'nodes': nodes})

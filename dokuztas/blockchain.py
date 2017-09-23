@@ -11,10 +11,17 @@ class Blockchain:
         self.mine_continue = True
 
     def _generate_genesis(self):
+        """
+        Genesis block'u oluşturup, chain'in ilk block'u olarak ekler.
+        """
         genesis = Block(id=0, blockhash=0, previous_hash=0, nonce=0, merkleroot=0, data=['genesis'])
         self.blocks.append(genesis)
 
     def validate(self):
+        """
+        Chain'deki block'lar değiştirilmiş mi kontrolü yapar. Bunu, her block'un previous_hash değeri, bir önceki block'un
+        blockhash'i ile aynı mı diye bakarak yapar.
+        """
         blocks_len = len(self.blocks)
         if blocks_len == 0 or blocks_len == 1:
             return True
@@ -25,6 +32,17 @@ class Blockchain:
         return True
 
     def calculate_merkle(self, pending_txs):
+        """
+        Ağa eklenecek transaction'ların merkle root hash'ini hesaplamak için kullanılır. Her bir ikili transaction'un,
+        hash'ini alır ve bunları tek bir hash olarak birleştirir. Ve çıkan hash_list'i, tekrar aynı işleme tabi tutmak için
+        yine bu metoda parametre olarak geçer. Bu sayede tüm transacation'ların hash'leri, tek bir hash olana kadar
+        bu fonksiyon çalıştırılmış olunur.
+
+        Eğer block'a alınacak olan transaction sayısı bir (1) ise, sadece bunun hash'i alınıp geri döndürülür.
+
+        :param pending_txs: Block'a eklenecek olan transaction'lar.
+        :return tüm tree'nin hash'i.
+        """
         hash_list = []
         if len(pending_txs) % 2 == 1:
             odd_tx = pending_txs[len(pending_txs) - 1].encode('utf-8')
@@ -50,6 +68,16 @@ class Blockchain:
             return result
 
     def mine(self, pending_block):
+        """
+        Eklenmek istenen block'un merkle root hash'ini alıp,
+            * son block'un hash'i,
+            * eklenecek olan block'un id'si,
+            * ve nonce
+        değerini alarak hash'ler ve problemi çözmeye çalışır. Problemi çözdüğünde chain'e block'u ekler ve diğer
+        node'ları haberdar eder.
+
+        :param pending_block: Chain'e eklenmek istenen block
+        """
         self.mine_continue = True
         root_hash = self.calculate_merkle(pending_block.pending_txs)
         last_block = self.blocks[len(self.blocks) - 1]

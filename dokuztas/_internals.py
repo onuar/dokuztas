@@ -1,8 +1,8 @@
 import time, functools
 
 
-def _log(type, message):
-    print(">>> {0}: {1}".format(type, message))
+def _log(log_type, message):
+    print(">>> {0}: {1}".format(log_type, message))
 
 
 def execstat(func):

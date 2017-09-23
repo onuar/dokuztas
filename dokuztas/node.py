@@ -15,24 +15,33 @@ class NodeComponent(object):
         self.pending_blocks = []
 
     def create_genesis_chain(self):
+        """Genesis block yaratır."""
         _log('info', 'Genesis! Blockchain ilk kez oluşturuldu.')
         self.chain = Blockchain()
 
     def pick_honest_chain(self, node_chains):
-        # consensus
+        """
+        Genesis block'un yaratıldığı bir ağa bağlanan node için çalıştırılır.
+        Node, consensus sonucu, değiştirilmemiş block'u bulmaya çalışır.
+
+        v0.0.1 itibari ile, sadece ilk node'dan gelen block'u doğru kabul edip almaktadır.
+        İlerki versiyonlarda değiştirilecektir. Roadmap'e eklenmiş durumda.
+
+        :param node_chains: Ağdaki tüm ağlardan alınan block'lar.
+        """
         _log('info', 'Ağdaki block\'lar toplanılarak, consensus sonrası en uygun block seçildi')
         self.chain = Blockchain()
         self.chain.blocks = node_chains[0]
 
     def load_chain(self, nodes_chains):
+        """
+        Ağdan gelen block'lara bakarak, genesis block mu yaratılacak, consensus sonucu en uygun chain mi seçilecek kararını verir.
+
+        :param nodes_chains: Ağdaki tüm ağlardan alınan block'lar.
+        """
         if len(nodes_chains) == 0:
-            # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, GENESIS gerçekleşir.
             self.create_genesis_chain()
         else:
-            """
-            ağa daha önceden bağlanmış ve GENESIS'i oluşturmuş node'lar var demektir.
-            Sadece bunların yüklenmesi gerekir
-            """
             self.pick_honest_chain(nodes_chains)
 
     def get_blocks(self):
@@ -49,21 +58,21 @@ class NodeComponent(object):
 
     def block_added(self, new_block):
         """
-        bu fonksiyon çağırıldığında diğer node'lardan biri block'u eklemiş demektir,
+        Diğer node'lardan biri, mining sonucu block eklediğinde, node'un sync kalması için çağırılır.
         devam etmekte olan mine işlemi sonlandırılır
-        :param new_block:
-        :return:
+
+        :param new_block: Yeni eklenen block.
         """
 
         pass
 
     def add_transaction(self, tx):
         """
-        node'lar tarafından eklenen tx'ler içindir.
+        Mine edilmesi için yeni bir transaction ekemek içindir.
 
-        mine işlemini, tx sayısı 10'a ulaştığında bir kez tetikler. sonrasında mine bir döngü
-        :param tx:
-        :return:
+        Mine işlemini, tx sayısı 10'a ulaştığında bir kez tetikler. Sonrasında mine bir döngü şeklinde çalışmaya devam eder.
+
+        :param tx: Mine edilesi için eklenen transaction.
         """
         self.pending_txs.append(tx)
 
@@ -132,13 +141,13 @@ def get_chain():
 
 @app.route('/mine', methods=['GET'])
 def new_block_added_triggered():
-    # yeni eklenen block'un problemini çözmeye çalış
+    # todo: yeni eklenen block'un problemini çözmeye çalış
     return jsonify({'status': 'ok'})
 
 
 @app.route('/add', methods=['POST'])
 def add_new_block():
-    # tx'i alıp blockchain'e ver. o da block yaratsın.
+    # todo: tx'i alıp blockchain'e ver. o da block yaratsın.
     return jsonify({'status': 'ok'})
 
 
@@ -171,16 +180,13 @@ def command_line_runner():
 
     nodes = get_other_nodes()
     if len(nodes) == 1:
-        """
-        mevcut node sayısı 1 ise, ilk node network'e bağlanmıştır. 
-        bu durumda chain'in ilk kez yaratılması gerekir, doğal olarak da genesis'in.
-        """
+        # mevcut node sayısı 1 ise, ilk node network'e bağlanmıştır.
+        # bu durumda chain'in ilk kez yaratılması gerekir, doğal olarak da genesis'in.
         active_node.create_genesis_chain()
     else:
-        """
-        bu durumda, ağda başka node'lar var demektir. yani bir blockchain ve genesis block'u çoktan yaratılmıştır.
-        ağa 1. olarak dahil olmayan tüm node'lar, giriş anlarında mevcut chain'i ve block'ları yüklemeleri gerekmektedir.
-        """
+        # bu durumda, ağda başka node'lar var demektir. yani bir blockchain ve genesis block'u çoktan yaratılmıştır.
+        # ağa 1. olarak dahil olmayan tüm node'lar, giriş anlarında mevcut chain'i ve block'ları
+        # yüklemeleri gerekmektedir.
         load_chain(current_port, nodes=nodes)
     run(current_port)
 
