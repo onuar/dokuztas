@@ -1,11 +1,10 @@
 import argparse
-import threading
 import requests
 from flask import Flask, jsonify
 
 from dokuztas.blockchain import Blockchain, PendingBlock
 from dokuztas.exceptions import *
-from dokuztas._internals import _log
+from dokuztas._internals import _log, MiningThread
 
 
 class NodeComponent(object):
@@ -57,7 +56,7 @@ class NodeComponent(object):
             raise MinerException()
 
     def terminate_mining(self):
-        self.stop_mining = True
+        return self.stop_mining
 
     def add_transaction(self, tx):
         """
@@ -87,18 +86,19 @@ class NodeComponent(object):
         ilerde node'ların, transaction fee'ye göre mine etme veya mine etmek istedikleri block'ları kendilerinin
         seçebilmesi gibi özellikleri olabilmesi ihtimalidir. Şu an için roadmap'te böyle bir özellik bulunmamaktadır.
         """
-        self.miner_check()
-
         th_mine = None
+        self.miner_check()
+        self.stop_mining = False
 
         def block_found():
-            th_mine.join()
+            _log('dev', 'Block found called')
+            th_mine.stop()
 
         if len(self.pending_blocks) > 0:
-            th_mine = threading.Thread(target=self.chain.mine,
-                                       args=(self.pending_blocks[0],
-                                             self.terminate_mining,
-                                             block_found))
+            th_mine = MiningThread(mine_target=self.chain.mine,
+                                   args=(self.pending_blocks[0],
+                                         self.terminate_mining,
+                                         block_found))
             th_mine.start()
 
     def block_added(self, new_block):
@@ -110,7 +110,7 @@ class NodeComponent(object):
         """
         self.miner_check()
 
-        self.terminate_mining()
+        self.stop_mining = True
         self.pending_blocks.remove(self.pending_blocks[0])
 
         self.chain.blocks.append(new_block)

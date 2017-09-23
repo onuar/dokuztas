@@ -1,4 +1,6 @@
-import time, functools
+import functools
+import time
+import threading
 
 
 def _log(log_type, message):
@@ -16,3 +18,18 @@ def execstat(func):
         return response
 
     return newfunc
+
+
+class MiningThread(threading.Thread):
+    def __init__(self, mine_target, args=()):
+        super(MiningThread, self).__init__(target=mine_target, args=args)
+        self.mine_target = mine_target
+        self.target_args = args
+
+    def start(self):
+        _log('dev', 'Mining thread started')
+        super(MiningThread, self).start()
+
+    def stop(self):
+        _log('dev', 'Mining thread stopped')
+        # super(MiningThread, self).join()

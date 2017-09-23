@@ -5,9 +5,9 @@ from dokuztas._internals import _log
 
 
 class Blockchain:
-    def __init__(self):
+    def __init__(self, difficulty=4):
         self.blocks = []
-        self.difficulty = 4
+        self.difficulty = difficulty
         self.mine_continue = True
 
     def _generate_genesis(self):
@@ -91,7 +91,8 @@ class Blockchain:
         challenge_string = root_hash_enc + prv_hash_enc + block_id_enc
         sha.update(challenge_string)
         difficulty_indicator = ''.join(["0" for x in range(0, self.difficulty)])
-        while mine_continue and not stop_mining_check():
+        is_stopped = not stop_mining_check()
+        while mine_continue and is_stopped:
             nonce_enc = str(nonce).encode('utf-8')
             sha.update(nonce_enc)
 
