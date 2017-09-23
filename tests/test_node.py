@@ -5,39 +5,42 @@ import pytest
 from unittest.mock import patch
 
 
-def test_max_pending_txs_count_should_be_10():
-    node = NodeComponent()
-    node.create_genesis_chain()
-    for x in range(0, 10):
-        node.add_transaction(x)
+def mined_node_patcher(txs_count):
+    def node_decorator(func):
+        def func_wrapper():
+            patcher = patch('dokuztas.node.NodeComponent.mine')
+            patcher.start()
+            node = NodeComponent()
+            node.miner = True
+            node.create_genesis_chain()
+            for x in range(0, txs_count):
+                node.add_transaction(str(x))
+            patcher.stop()
+            func(node)
 
+        return func_wrapper
+
+    return node_decorator
+
+
+@mined_node_patcher(10)
+def test_max_pending_txs_count_should_be_10(node):
     assert len(node.pending_txs) == 10
 
 
-def test_after_each_10_txs_pending_txs_count_should_be_zero():
-    node = NodeComponent()
-    node.create_genesis_chain()
-    for x in range(0, 11):
-        node.add_transaction(x)
-
+@mined_node_patcher(11)
+def test_after_each_10_txs_pending_txs_count_should_be_zero(node):
     assert len(node.pending_txs) == 0
 
 
-def test_every_10_txs_should_be_packed_in_pending_block_object():
-    node = NodeComponent()
-    node.create_genesis_chain()
-    for x in range(0, 22):
-        node.add_transaction(x)
-
+@mined_node_patcher(22)
+def test_every_10_txs_should_be_packed_in_pending_block_object(node):
     assert len(node.pending_txs) == 0
     assert len(node.pending_blocks) == 2
 
 
-def test_pending_blocks_should_be_typed_with_pendingblock_object():
-    node = NodeComponent()
-    node.create_genesis_chain()
-    for x in range(0, 11):
-        node.add_transaction(x)
+@mined_node_patcher(11)
+def test_pending_blocks_should_be_typed_with_pendingblock_object(node):
     from dokuztas.blockchain import PendingBlock
     assert isinstance(node.pending_blocks[0], PendingBlock)
 

@@ -4,15 +4,18 @@ from dokuztas.blockchain import Blockchain, Block, PendingBlock
 def mined_chain_patcher():
     def chain_decorator(func):
         def func_wrapper():
+            def always_mine():
+                return False
+
             chain = Blockchain()
             chain._generate_genesis()
             p = PendingBlock()
             p.add_txs(['a', 'b', 'c', 'd', 'f'])
-            chain.mine(p)
+            chain.mine(p, always_mine)
 
             p2 = PendingBlock()
             p2.add_txs(['y', 'z'])
-            chain.mine(p2)
+            chain.mine(p2, always_mine)
 
             func(chain)
 
@@ -84,10 +87,13 @@ def test_if_pending_tx_count_is_even_number_then_merkle_root_should_be_one_hash(
 
 
 def test_mine_tester():
+    def always_mine():
+        return False
+
     chain = Blockchain()
     chain._generate_genesis()
     p = PendingBlock()
     p.add_txs(['a', 'b', 'c', 'd', 'f'])
-    chain.mine(p)
+    chain.mine(p, always_mine)
     assert chain.blocks[1].nonce == 13106
     assert chain.blocks[1].blockhash == '00005df8b04cb42e62c5be0766af2caa884dd52b51b7ff1549aab3c77e88b84d'

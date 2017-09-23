@@ -1,4 +1,5 @@
 import argparse
+import threading
 import requests
 from flask import Flask, jsonify
 
@@ -10,6 +11,7 @@ from dokuztas._internals import _log
 class NodeComponent(object):
     def __init__(self, miner=False):
         self.chain = None
+        self.stop_mining = False
         self.miner = miner
         self.pending_txs = []
         self.pending_blocks = []
@@ -18,6 +20,7 @@ class NodeComponent(object):
         """Genesis block yaratır."""
         _log('info', 'Genesis! Blockchain ilk kez oluşturuldu.')
         self.chain = Blockchain()
+        self.chain._generate_genesis()
 
     def pick_honest_chain(self, node_chains):
         """
@@ -49,31 +52,24 @@ class NodeComponent(object):
             raise ChainNotCreatedException()
         return self.chain.blocks
 
-    def mine(self):
+    def miner_check(self):
         if not self.miner:
             raise MinerException()
 
-        if self.pending_blocks > 0:
-            self.chain.mine(self.pending_blocks[0])
-
-    def block_added(self, new_block):
-        """
-        Diğer node'lardan biri, mining sonucu block eklediğinde, node'un sync kalması için çağırılır.
-        devam etmekte olan mine işlemi sonlandırılır
-
-        :param new_block: Yeni eklenen block.
-        """
-
-        pass
+    def terminate_mining(self):
+        self.stop_mining = True
 
     def add_transaction(self, tx):
         """
         Mine edilmesi için yeni bir transaction ekemek içindir.
+        Her bekleyen transaction'ı, bir (1) block'a çevirir ve bu şekilde bekletir.
 
         Mine işlemini, tx sayısı 10'a ulaştığında bir kez tetikler. Sonrasında mine bir döngü şeklinde çalışmaya devam eder.
 
         :param tx: Mine edilesi için eklenen transaction.
         """
+        self.miner_check()
+
         self.pending_txs.append(tx)
 
         if len(self.pending_txs) > 10:
@@ -82,8 +78,42 @@ class NodeComponent(object):
             self.pending_blocks.append(p_block)
             self.pending_txs = []
 
-            if len(self.pending_blocks) == 1 and self.miner:
+            if len(self.pending_blocks) == 1:
                 self.mine()
+
+    def mine(self):
+        """
+        Mine işleminin başlatıldığı yerdir. Bu işlemin blockchain objesi tarafından yönetilmemesinin sebebi,
+        ilerde node'ların, transaction fee'ye göre mine etme veya mine etmek istedikleri block'ları kendilerinin
+        seçebilmesi gibi özellikleri olabilmesi ihtimalidir. Şu an için roadmap'te böyle bir özellik bulunmamaktadır.
+        """
+        self.miner_check()
+
+        th_mine = None
+
+        def block_found():
+            th_mine.join()
+
+        if len(self.pending_blocks) > 0:
+            th_mine = threading.Thread(target=self.chain.mine,
+                                       args=(self.pending_blocks[0],
+                                             self.terminate_mining,
+                                             block_found))
+            th_mine.start()
+
+    def block_added(self, new_block):
+        """
+        Diğer node'lardan biri, mining sonucu block eklediğinde, node'un sync kalması için çağırılır.
+        Devam etmekte olan bir mine işlemi varsa, sonlandırılır.
+
+        :param new_block: Yeni eklenen block.
+        """
+        self.miner_check()
+
+        self.terminate_mining()
+        self.pending_blocks.remove(self.pending_blocks[0])
+
+        self.chain.blocks.append(new_block)
 
 
 app = Flask(__name__)

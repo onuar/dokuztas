@@ -67,7 +67,7 @@ class Blockchain:
         if isinstance(result, str):
             return result
 
-    def mine(self, pending_block):
+    def mine(self, pending_block, stop_mining_check, cb_block_found=None):
         """
         Eklenmek istenen block'un merkle root hash'ini alıp,
             * son block'un hash'i,
@@ -76,9 +76,11 @@ class Blockchain:
         değerini alarak hash'ler ve problemi çözmeye çalışır. Problemi çözdüğünde chain'e block'u ekler ve diğer
         node'ları haberdar eder.
 
-        :param pending_block: Chain'e eklenmek istenen block
+        :param pending_block: Chain'e eklenmek istenen block.
+        :param stop_mining_check: Node'un, mining'i durdurabilmesi içindir.
+        :param cb_block_found: Block bulunduğunda node'u notify etmesi için bir callback.
         """
-        self.mine_continue = True
+        mine_continue = True
         root_hash = self.calculate_merkle(pending_block.pending_txs)
         last_block = self.blocks[len(self.blocks) - 1]
         nonce = 0
@@ -89,7 +91,7 @@ class Blockchain:
         challenge_string = root_hash_enc + prv_hash_enc + block_id_enc
         sha.update(challenge_string)
         difficulty_indicator = ''.join(["0" for x in range(0, self.difficulty)])
-        while self.mine_continue:
+        while mine_continue and not stop_mining_check():
             nonce_enc = str(nonce).encode('utf-8')
             sha.update(nonce_enc)
 
@@ -97,12 +99,15 @@ class Blockchain:
             if blockhash[0:self.difficulty] == difficulty_indicator:
                 # aranan nonce bulundu!
                 _log('info', 'Nonce bulundu! nonce: {0} block_hash: {1}'.format(str(nonce), blockhash))
-                self.mine_continue = False
+                mine_continue = False
                 new_id = len(self.blocks)
                 block_to_add = Block(id=new_id, blockhash=blockhash,
                                      previous_hash=last_block.blockhash, nonce=nonce,
                                      merkleroot=root_hash, data=pending_block.pending_txs)
                 self.blocks.append(block_to_add)
+
+                if cb_block_found:
+                    cb_block_found()
 
             nonce += 1
 
