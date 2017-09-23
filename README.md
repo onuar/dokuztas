@@ -70,13 +70,13 @@ Root hash'i hesaplamak için her bir ikili elemanın hash'i alınır, bunlar ayr
 sırada bekleyen txs'lerin merkle root hash'lerini hesaplamak ve block'a eklemek içindir.
  
 ## Yol haritası
-* Kod içersindeki dökümantasyonun artırılması.
 * Windows ve Linux dağıtımlarından birinde test edilip, README sayfasının buna uygun değiştirilmesi.
 * README'ye, bu projeye teknik anlamda nasıl destek verilebileceği ile ilgili bir bilgi eklemek.
 
 ### Eklenecek özellikler
 * Bekleyen transaction'lar (txs) ve bekleyen block'ların sıra ile mining işlemine alınması.
-* Bir node ağa dahil olduğunda, ağa daha önceden bağlanmış olan node'lardan block'ları almalı ve en uygun (honest) block'u doğru olarak kabul etmeli. (consensus).
+* Bir node ağa dahil olduğunda, ağa daha önceden bağlanmış olan node'lardan block'ları almalı ve en uygun (honest) block'u doğru olarak kabul etmeli. (consensus) (şu an için sadece ilk node'un chain'i alınıp, doğru kabul ediliyor.).
 * Ağdaki node'ların block'ları manuple edemeyeceğini göstermek için, "/hack" adı altında bir resource eklenmesi. Bu /hack, basitçe mevcut block'taki bir tx'i değiştirip hash'leri tekrar hesaplayacak ve bu yeni chain'i diğer node'ların demokratik seçimine bırakacak. Sonuç olarak ağda dolaşan chain'in değiştirilemediği görülecek (immutability).
+* Node Address Server olmadan da node'ların birbirinden haberdar olabilecekleri bir yapıya geçmek.
 * (belki) Private ve public key'ler ile, tx'i ekleyen kişinin doğrulamasının yapılması.
 * (belki) tx'lerin içerdiği data, cryptocurrency'lerde olduğu gibi from, to, amount içerecek şekilde değiştirilirse, double-spending engelleme kontrollerinin eklenmesi.
