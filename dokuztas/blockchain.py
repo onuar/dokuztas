@@ -1,6 +1,7 @@
 import hashlib as hasher
 
 from dokuztas.exceptions import *
+from dokuztas._internals import _log
 
 
 class Blockchain:
@@ -67,7 +68,7 @@ class Blockchain:
             blockhash = sha.hexdigest()
             if blockhash[0:self.difficulty] == difficulty_indicator:
                 # aranan nonce bulundu!
-                print('nonce bulundu! nonce: {0} block_hash: {1}'.format(str(nonce), blockhash))
+                _log('info', 'Nonce bulundu! nonce: {0} block_hash: {1}'.format(str(nonce), blockhash))
                 self.mine_continue = False
                 new_id = len(self.blocks)
                 block_to_add = Block(id=new_id, blockhash=blockhash,

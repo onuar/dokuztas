@@ -4,6 +4,7 @@ from flask import Flask, jsonify
 
 from dokuztas.blockchain import Blockchain, PendingBlock
 from dokuztas.exceptions import *
+from dokuztas._internals import _log
 
 
 class NodeComponent(object):
@@ -14,17 +15,16 @@ class NodeComponent(object):
         self.pending_blocks = []
 
     def create_genesis_chain(self):
-        print(">>> GENESIS")
+        _log('info', 'Genesis! Blockchain ilk kez oluşturuldu.')
         self.chain = Blockchain()
 
     def pick_honest_chain(self, node_chains):
         # consensus
-        print(">>> LOADED: Blocks")
+        _log('info', 'Ağdaki block\'lar toplanılarak, consensus sonrası en uygun block seçildi')
         self.chain = Blockchain()
         self.chain.blocks = node_chains[0]
 
     def load_chain(self, nodes_chains):
-        print(str(nodes_chains))
         if len(nodes_chains) == 0:
             # tüm node'lar kontrol edilmiş fakat yaratılmış bir chain bulunamamışsa, GENESIS gerçekleşir.
             self.create_genesis_chain()
@@ -94,9 +94,9 @@ def connect_to_network(port):
     http_response = requests.post(
         'http://localhost:5001/connect', json=data)
     if http_response.status_code == 200:
-        print('>>> Bilgilendirme: Blockchain ağına bağlanıldı.')
+        _log('info', 'Blockchain ağına bağlanıldı.')
     else:
-        print('>>> Hata: {0}'.format(http_response.json()['message']))
+        _log('error', 'Ağa bağlanırken hata ile karşılaşıldı: {0}'.format(http_response.json()['message']))
 
 
 def load_chain(current_port, nodes=None):
@@ -114,8 +114,7 @@ def load_chain(current_port, nodes=None):
 
                 all_blocks.append((node, thawed))
         except ConnectionError as con:
-            print(
-                '>>> Bilgilendirme: {0} porta sahip node offline olabilir'.format(node))
+            _log('info', '{0} porta sahip node offline olabilir'.format(node))
 
     active_node.load_chain(all_blocks)
 
@@ -127,7 +126,7 @@ def get_chain():
         import jsonpickle
         frozen = jsonpickle.encode(active_node.chain.blocks)
     except Exception as exc:
-        print(">>> HATA /chain: {0}".format(str(exc)))
+        _log('error', '/chain: {0}'.format(str(exc)))
     return jsonify({'blocks': frozen})
 
 
