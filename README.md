@@ -38,6 +38,7 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
     python noderunner.py -p 5003 -m 1
     python noderunner.py -p 5004 -m 1
 > 5003 ve 5004 miner olarak görev yapıyor (-m parametresi).
+> 5003'ün ve 5004'ün farklı konfigürasyonlara sahip bilgisayarlar olma durumunu test edebilmek için, dokuztas.blockchain.Blockchain.mine metodundaki `Hardware spec simülasyonu` section'unu açabilirsiniz. Fakat unit test'ler çalıştırılırken, kapatılması unutulmamalıdır.
 
 
 ### Demo (Ledger ve mining)

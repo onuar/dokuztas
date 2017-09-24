@@ -8,9 +8,10 @@ from dokuztas._internals import _log, MiningThread
 
 
 class NodeComponent(object):
-    def __init__(self, miner=False, cb_notify_nodes=None):
+    def __init__(self, miner=False, cb_notify_nodes=None, difficulty=4):
         self.chain = None
         self.stop_mining = False
+        self.difficulty = difficulty
         self.cb_notify_nodes = cb_notify_nodes
         self.miner = miner
         self.pending_txs = []
@@ -19,7 +20,7 @@ class NodeComponent(object):
     def create_genesis_chain(self):
         """Genesis block yaratır."""
         _log('info', 'Genesis! Blockchain ilk kez oluşturuldu.')
-        self.chain = Blockchain(difficulty=5)
+        self.chain = Blockchain(difficulty=self.difficulty)
         self.chain._generate_genesis()
 
     def pick_honest_chain(self, node_chains):
@@ -33,7 +34,7 @@ class NodeComponent(object):
         :param node_chains: Ağdaki tüm ağlardan alınan block'lar.
         """
         _log('info', 'Ağdaki block\'lar toplanılarak, consensus sonrası en uygun block seçildi')
-        self.chain = Blockchain()
+        self.chain = Blockchain(difficulty=self.difficulty)
         self.chain.blocks = node_chains[0][1]
 
     def load_chain(self, nodes_chains):
@@ -53,10 +54,17 @@ class NodeComponent(object):
         return self.chain.blocks
 
     def miner_check(self):
+        # aktif node bir miner mı kontrolü yapar. Değilse MinerException fırlatır.
         if not self.miner:
             raise MinerException()
 
     def terminate_mining(self):
+        """
+        Blockchain.mine metoduna parametre olarak geçilir ve Blockchain.mine metodu nonce'u ararken, her iterasyonda bu metodu çağırır.
+        Burada amaç, NodeComponent üzerinden, Blockchain üzerinde çalışan mining thread'ini durdurabilmektir. self.stop_mining = True olduğunda,
+        Blockchain.mine duracaktır. Bu durum sadece, başka bir miner'ın problemi, aktif node'dan önce çözmesi durumunda oluşur. Aktif node'un
+        üzerinde çalıştığı block'u bırakarak, yeni block'a geçmesini sağlar.
+        """
         return self.stop_mining
 
     def add_transaction(self, tx):
@@ -96,6 +104,13 @@ class NodeComponent(object):
             self.cb_notify_nodes(self.chain.blocks[len(self.chain.blocks) - 1])
 
     def _internal_mine(self, args=()):
+        """
+        Normal şartlar altında mine işlemi ayrı bir thread içersinde çalışmalıdır. Bu metod da bunu sağlamaktadır.
+        Bu işlemin NodeComponent.mine metodu içersinde yapılmamasının tek sebebi, dışardan mock'lama ihtiyacının oluşmasıdır.
+        Unit test'lerde kimi zaman senkronize mining yapılması gerekebiliyor.
+
+        :param args: Her zaman Blockchain.mine metodu ile aynı olmalıdır.
+        """
         th_mine = MiningThread(mine_target=self.chain.mine,
                                args=args)
         th_mine.start()
@@ -129,12 +144,17 @@ class NodeComponent(object):
         :param new_block: Yeni eklenen block.
         """
         _log('debug', 'node.NodeComponent.block_added')
+        self.chain.blocks.append(new_block)
         if self.miner:
             self.miner_check()
             self.stop_mining = True
-            self.pending_blocks.remove(self.pending_blocks[0])
-
-        self.chain.blocks.append(new_block)
+            # Normal şartlar altında bu if bloguna ihtiyaç olmaması gerekiyor.
+            # HTTP çalıştığımız için ve queue olmadığı için, diğer miner'lardan birisi
+            # iki kez üst üste problemi çözerse, IndexError: list index out of range
+            # oluşuyor.
+            if len(self.pending_blocks) > 0:
+                self.pending_blocks.remove(self.pending_blocks[0])
+            self.mine()
 
 
 app = Flask(__name__)
@@ -160,6 +180,18 @@ def connect_to_network(port):
         _log('error', 'Ağa bağlanırken hata ile karşılaşıldı: {0}'.format(http_response.json()['message']))
 
 
+def broadcast_nodes(cb_iter, cb_error, nodes=None):
+    if not nodes:
+        nodes = get_other_nodes()
+
+    for node in nodes:
+        if node != curr_port:
+            try:
+                cb_iter(node)
+            except Exception as exc:
+                cb_error(exc, node)
+
+
 def load_chain(current_port, nodes=None):
     all_blocks = []
     from requests.exceptions import ConnectionError
@@ -174,7 +206,7 @@ def load_chain(current_port, nodes=None):
                 thawed = jsonpickle.decode(serialized)
 
                 all_blocks.append((node, thawed))
-        except ConnectionError as con:
+        except ConnectionError as conerr:
             _log('info', '{0} porta sahip node offline olabilir'.format(node))
 
     active_node.load_chain(all_blocks)
@@ -184,14 +216,14 @@ def notify_nodes(last_block):
     nodes = get_other_nodes()
     for node in nodes:
         try:
+            import jsonpickle
             if node != curr_port:
-                import jsonpickle
                 frozen = jsonpickle.encode(last_block)
                 data = {'block': frozen}
                 requests.post(
                     'http://localhost:{0}/found'.format(node), json=data)
-        except ConnectionError as coner:
-            pass
+        except ConnectionError as conerr:
+            _log('info', '{0} porta sahip node offline olabilir'.format(node))
 
 
 @app.route('/found', methods=['POST'])
@@ -200,7 +232,7 @@ def block_added():
     serialized = request.json['block']
     thawed = jsonpickle.decode(serialized)
     active_node.block_added(thawed)
-    _log('debug', 'Başka bir node, problemi çözdü.')
+    _log('debug', 'Başka bir miner block problemini çözdü. Çözülen block, chain\'e eklendi.')
     return jsonify({'status': 'ok'})
 
 
@@ -215,10 +247,29 @@ def get_chain():
     return jsonify({'blocks': frozen})
 
 
+@app.route('/added', methods=['POST'])
+def added_transaction():
+    data = request.json["tx"]
+    active_node.add_transaction(data)
+    return jsonify({'status': 'ok'})
+
+
 @app.route('/add', methods=['POST'])
 def add_transaction():
     data = request.json["tx"]
-    active_node.add_transaction(data)
+    if active_node.miner:
+        active_node.add_transaction(data)
+
+    def send_tx(node):
+        req_data = {'tx': request.json["tx"]}
+        requests.post(
+            'http://localhost:{0}/added'.format(node), json=req_data)
+
+    def exc_occurs(exc, node):
+        if exc is ConnectionError:
+            _log('info', '{0} porta sahip node offline olabilir'.format(node))
+
+    broadcast_nodes(cb_iter=send_tx, cb_error=exc_occurs)
     return jsonify({'status': 'ok'})
 
 
@@ -243,7 +294,7 @@ def command_line_runner():
     current_port = args.port
 
     global active_node
-    active_node = NodeComponent(miner=args.miner, cb_notify_nodes=notify_nodes)
+    active_node = NodeComponent(miner=args.miner, cb_notify_nodes=notify_nodes, difficulty=5)
 
     if not current_port:
         current_port = 5000
@@ -264,7 +315,8 @@ def command_line_runner():
         load_chain(current_port, nodes=nodes)
 
     # todo: ağa yeni dahil olan node bir miner ise, önceden ağa girmiş olan node'lardan,
-    # bekleyen block'ları ve tx'leri alması gerekiyor ve hemen mining'e başlaması gerekiyor
+    # bekleyen block'ları ve tx'leri alması gerekiyor ve hemen mining'e başlaması gerekiyor.
+
     run(current_port)
 
 

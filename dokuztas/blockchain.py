@@ -91,6 +91,15 @@ class Blockchain:
         challenge_string = root_hash_enc + prv_hash_enc + block_id_enc
         sha.update(challenge_string)
         difficulty_indicator = ''.join(["0" for x in range(0, self.difficulty)])
+
+        # Hardware spec simülasyonu -- BEGIN
+        # import time
+        # import random
+        # performance = float(random.randrange(100, 5000)) / 100
+        # _log('debug', 'Sleeping: {0}'.format(str(performance)))
+        # time.sleep(performance)
+        # Hardware spec simülasyonu -- END
+
         while mine_continue and not stop_mining_check():
             # _log('debug', 'Mining iter {0}'.format(str(nonce)))
             nonce_enc = str(nonce).encode('utf-8')
