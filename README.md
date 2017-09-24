@@ -74,7 +74,7 @@ sırada bekleyen txs'lerin merkle root hash'lerini hesaplamak ve block'a eklemek
 * README'ye, bu projeye teknik anlamda nasıl destek verilebileceği ile ilgili bir bilgi eklemek.
 
 ### Eklenecek özellikler
-* Bekleyen transaction'lar (txs) ve bekleyen block'ların sıra ile mining işlemine alınması.
+* Bir miner ağa, pending txs'ler oluştuktan sonra dahil olduysa, aktif node'larda bu txs'leri alıp mining işlemine öyle başlamalıdır.
 * Bir node ağa dahil olduğunda, ağa daha önceden bağlanmış olan node'lardan block'ları almalı ve en uygun (honest) block'u doğru olarak kabul etmeli. (consensus) (şu an için sadece ilk node'un chain'i alınıp, doğru kabul ediliyor.).
 * Ağdaki node'ların block'ları manuple edemeyeceğini göstermek için, "/hack" adı altında bir resource eklenmesi. Bu /hack, basitçe mevcut block'taki bir tx'i değiştirip hash'leri tekrar hesaplayacak ve bu yeni chain'i diğer node'ların demokratik seçimine bırakacak. Sonuç olarak ağda dolaşan chain'in değiştirilemediği görülecek (immutability).
 * Node Address Server olmadan da node'ların birbirinden haberdar olabilecekleri bir yapıya geçmek.

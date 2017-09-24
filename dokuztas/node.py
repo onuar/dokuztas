@@ -82,7 +82,16 @@ class NodeComponent(object):
 
     def block_found(self):
         _log('dev', 'NodeComponent.mine.block_found')
-        # th_mine.stop()
+        if len(self.pending_blocks) > 0:
+            self.pending_blocks.remove(self.pending_blocks[0])
+        elif len(self.pending_txs) > 0:
+            self.pending_txs = []
+        self.mine()
+
+    def _internal_mine(self, args=()):
+        th_mine = MiningThread(mine_target=self.chain.mine,
+                               args=args)
+        th_mine.start()
 
     def mine(self):
         """
@@ -90,16 +99,20 @@ class NodeComponent(object):
         ilerde node'ların, transaction fee'ye göre mine etme veya mine etmek istedikleri block'ları kendilerinin
         seçebilmesi gibi özellikleri olabilmesi ihtimalidir. Şu an için roadmap'te böyle bir özellik bulunmamaktadır.
         """
-        th_mine = None
         self.miner_check()
         self.stop_mining = False
 
         if len(self.pending_blocks) > 0:
-            th_mine = MiningThread(mine_target=self.chain.mine,
-                                   args=(self.pending_blocks[0],
-                                         self.terminate_mining,
-                                         self.block_found))
-            th_mine.start()
+            self._internal_mine(args=(self.pending_blocks[0],
+                                      self.terminate_mining,
+                                      self.block_found))
+        elif len(self.pending_txs) > 0:
+            temp_block = PendingBlock()
+            temp_block.add_txs(self.pending_txs)
+            self.pending_txs = []
+            self._internal_mine(args=(temp_block,
+                                      self.terminate_mining,
+                                      self.block_found))
 
     def block_added(self, new_block):
         """
@@ -113,7 +126,6 @@ class NodeComponent(object):
         self.stop_mining = True
         self.pending_blocks.remove(self.pending_blocks[0])
         self.chain.blocks.append(new_block)
-
 
 app = Flask(__name__)
 active_node = None
@@ -218,7 +230,6 @@ def command_line_runner():
         # yüklemeleri gerekmektedir.
         load_chain(current_port, nodes=nodes)
     run(current_port)
-
 
 if __name__ == '__main__':
     command_line_runner()
