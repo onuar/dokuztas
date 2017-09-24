@@ -162,6 +162,6 @@ def test_while_mining_new_txs_can_be_adding(node):
     from dokuztas.blockchain import Block
     assert len(node.pending_txs) == 1
 
-    # Mevcut mining'i durdurmak için
+    # Mevcut mining'i durdurmak için.
     block_to_add = Block(id=123, previous_hash=0, nonce=123, merkleroot=123, blockhash=111, data=['a', 'b', 'c'])
     node.block_added(block_to_add)

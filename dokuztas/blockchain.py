@@ -99,7 +99,7 @@ class Blockchain:
             blockhash = sha.hexdigest()
             if blockhash[0:self.difficulty] == difficulty_indicator:
                 # aranan nonce bulundu!
-                _log('info', 'Nonce bulundu! nonce: {0} block_hash: {1}'.format(str(nonce), blockhash))
+                _log('info', 'Nonce bulundu! Nonce: {0} Block_hash: {1}'.format(str(nonce), blockhash))
                 mine_continue = False
                 new_id = len(self.blocks)
                 block_to_add = Block(id=new_id, blockhash=blockhash,

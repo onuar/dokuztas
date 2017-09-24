@@ -32,7 +32,10 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
     source dokuztas/venv/bin/activate
     python dokuztas/nas.py
     python noderunner.py -p 5002
-    python noderunner.py -p 5003
+    python noderunner.py -p 5003 -m 1
+    python noderunner.py -p 5004 -m 1
+> 5003 ve 5004 miner olarak görev yapıyor (-m parametresi).
+
 
 ### Demo (Ledger ve mining)
 ```python

@@ -1,6 +1,6 @@
 import argparse
 import requests
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 from dokuztas.blockchain import Blockchain, PendingBlock
 from dokuztas.exceptions import *
@@ -18,7 +18,7 @@ class NodeComponent(object):
     def create_genesis_chain(self):
         """Genesis block yaratır."""
         _log('info', 'Genesis! Blockchain ilk kez oluşturuldu.')
-        self.chain = Blockchain()
+        self.chain = Blockchain(difficulty=5)
         self.chain._generate_genesis()
 
     def pick_honest_chain(self, node_chains):
@@ -81,6 +81,9 @@ class NodeComponent(object):
                 self.mine()
 
     def block_found(self):
+        """
+        Çalışan node block'u bulmuşsa, blockchain objesi tarafından çağırılır.
+        """
         _log('dev', 'NodeComponent.mine.block_found')
         if len(self.pending_blocks) > 0:
             self.pending_blocks.remove(self.pending_blocks[0])
@@ -126,6 +129,7 @@ class NodeComponent(object):
         self.stop_mining = True
         self.pending_blocks.remove(self.pending_blocks[0])
         self.chain.blocks.append(new_block)
+
 
 app = Flask(__name__)
 active_node = None
@@ -180,15 +184,10 @@ def get_chain():
     return jsonify({'blocks': frozen})
 
 
-@app.route('/mine', methods=['GET'])
-def new_block_added_triggered():
-    # todo: yeni eklenen block'un problemini çözmeye çalış
-    return jsonify({'status': 'ok'})
-
-
 @app.route('/add', methods=['POST'])
-def add_new_block():
-    # todo: tx'i alıp blockchain'e ver. o da block yaratsın.
+def add_transaction():
+    data = request.json["tx"]
+    active_node.add_transaction(data)
     return jsonify({'status': 'ok'})
 
 
@@ -208,12 +207,12 @@ def get_parser():
 
 
 def command_line_runner():
-    global active_node
-    active_node = NodeComponent()
-
     parser = get_parser()
     args = parser.parse_args()
     current_port = args.port
+
+    global active_node
+    active_node = NodeComponent(miner=args.miner)
 
     if not current_port:
         current_port = 5000
@@ -230,6 +229,7 @@ def command_line_runner():
         # yüklemeleri gerekmektedir.
         load_chain(current_port, nodes=nodes)
     run(current_port)
+
 
 if __name__ == '__main__':
     command_line_runner()
