@@ -5,11 +5,13 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
 
 ## Versiyonlar
 ### 0.0.1
-* Merkle root hash'inin hesaplanması
 * Chain yaratma
 * Genesis block ekleme
+* Merkle root hash'inin hesaplanması
 * Block ekleme
 * Mining
+* Mining için sırada bekleyen block'ları işleme
+* Mining için sırada bekleyen block yoksa, txs'leri işlemeye geçme
 * Node'ların ağa dahil olması
 * Ağa sonradan dahil olan node'un, diğer node'lardan block'ları alması (sync)
 
