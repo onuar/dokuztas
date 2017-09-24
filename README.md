@@ -14,6 +14,7 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
 * Mining için sırada bekleyen block yoksa, txs'leri işlemeye geçme
 * Node'ların ağa dahil olması
 * Ağa sonradan dahil olan node'un, diğer node'lardan block'ları alması (sync)
+* Problemi çözen miner'ın, ağdaki diğer node'ları haberdar etmesi
 
 ## Kurulum ve test
 

@@ -8,9 +8,10 @@ from dokuztas._internals import _log, MiningThread
 
 
 class NodeComponent(object):
-    def __init__(self, miner=False):
+    def __init__(self, miner=False, cb_notify_nodes=None):
         self.chain = None
         self.stop_mining = False
+        self.cb_notify_nodes = cb_notify_nodes
         self.miner = miner
         self.pending_txs = []
         self.pending_blocks = []
@@ -33,7 +34,7 @@ class NodeComponent(object):
         """
         _log('info', 'Ağdaki block\'lar toplanılarak, consensus sonrası en uygun block seçildi')
         self.chain = Blockchain()
-        self.chain.blocks = node_chains[0]
+        self.chain.blocks = node_chains[0][1]
 
     def load_chain(self, nodes_chains):
         """
@@ -82,7 +83,7 @@ class NodeComponent(object):
 
     def block_found(self):
         """
-        Çalışan node block'u bulmuşsa, blockchain objesi tarafından çağırılır.
+        Çalışan node block'u bulmuşsa, blockchain objesi tarafından bu metod çağırılır.
         """
         _log('dev', 'NodeComponent.mine.block_found')
         if len(self.pending_blocks) > 0:
@@ -90,6 +91,9 @@ class NodeComponent(object):
         elif len(self.pending_txs) > 0:
             self.pending_txs = []
         self.mine()
+
+        if self.cb_notify_nodes:
+            self.cb_notify_nodes(self.chain.blocks[len(self.chain.blocks) - 1])
 
     def _internal_mine(self, args=()):
         th_mine = MiningThread(mine_target=self.chain.mine,
@@ -119,20 +123,23 @@ class NodeComponent(object):
 
     def block_added(self, new_block):
         """
-        Diğer node'lardan biri, mining sonucu block eklediğinde, node'un sync kalması için çağırılır.
+        Diğer node'lardan biri, mining sonucu block eklediğinde, aktif node'un sync kalması için çağırılır.
         Devam etmekte olan bir mine işlemi varsa, sonlandırılır.
 
         :param new_block: Yeni eklenen block.
         """
-        _log('debug', 'block_added')
-        self.miner_check()
-        self.stop_mining = True
-        self.pending_blocks.remove(self.pending_blocks[0])
+        _log('debug', 'node.NodeComponent.block_added')
+        if self.miner:
+            self.miner_check()
+            self.stop_mining = True
+            self.pending_blocks.remove(self.pending_blocks[0])
+
         self.chain.blocks.append(new_block)
 
 
 app = Flask(__name__)
 active_node = None
+curr_port = None
 
 
 def get_other_nodes():
@@ -171,6 +178,30 @@ def load_chain(current_port, nodes=None):
             _log('info', '{0} porta sahip node offline olabilir'.format(node))
 
     active_node.load_chain(all_blocks)
+
+
+def notify_nodes(last_block):
+    nodes = get_other_nodes()
+    for node in nodes:
+        try:
+            if node != curr_port:
+                import jsonpickle
+                frozen = jsonpickle.encode(last_block)
+                data = {'block': frozen}
+                requests.post(
+                    'http://localhost:{0}/found'.format(node), json=data)
+        except ConnectionError as coner:
+            pass
+
+
+@app.route('/found', methods=['POST'])
+def block_added():
+    import jsonpickle
+    serialized = request.json['block']
+    thawed = jsonpickle.decode(serialized)
+    active_node.block_added(thawed)
+    _log('debug', 'Başka bir node, problemi çözdü.')
+    return jsonify({'status': 'ok'})
 
 
 @app.route('/chain', methods=['GET'])
@@ -212,10 +243,13 @@ def command_line_runner():
     current_port = args.port
 
     global active_node
-    active_node = NodeComponent(miner=args.miner)
+    active_node = NodeComponent(miner=args.miner, cb_notify_nodes=notify_nodes)
 
     if not current_port:
         current_port = 5000
+
+    global curr_port
+    curr_port = current_port
     connect_to_network(current_port)
 
     nodes = get_other_nodes()
@@ -228,6 +262,9 @@ def command_line_runner():
         # ağa 1. olarak dahil olmayan tüm node'lar, giriş anlarında mevcut chain'i ve block'ları
         # yüklemeleri gerekmektedir.
         load_chain(current_port, nodes=nodes)
+
+    # todo: ağa yeni dahil olan node bir miner ise, önceden ağa girmiş olan node'lardan,
+    # bekleyen block'ları ve tx'leri alması gerekiyor ve hemen mining'e başlaması gerekiyor
     run(current_port)
 
 
