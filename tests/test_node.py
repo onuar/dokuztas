@@ -23,10 +23,12 @@ def fake_mined_node_patcher(txs_count):
     return node_decorator
 
 
-def async_mined_node_patcher(txs_count):
+def async_mined_node_patcher(txs_count, difficulty=4):
     def node_decorator(func):
         def func_wrapper():
+            from dokuztas.blockchain import Blockchain
             node = NodeComponent()
+            node.chain = Blockchain(difficulty=difficulty)
             node.miner = True
             node.create_genesis_chain()
             for x in range(0, txs_count):
@@ -153,3 +155,13 @@ def test_after_first_block_is_mined_then_pending_txs_should_be_mined():
         node.add_transaction(str(x))
     thread_patcher.stop()
     assert len(node.chain.blocks) == 3
+
+
+@async_mined_node_patcher(txs_count=12, difficulty=10)
+def test_while_mining_new_txs_can_be_adding(node):
+    from dokuztas.blockchain import Block
+    assert len(node.pending_txs) == 1
+
+    # Mevcut mining'i durdurmak için
+    block_to_add = Block(id=123, previous_hash=0, nonce=123, merkleroot=123, blockhash=111, data=['a', 'b', 'c'])
+    node.block_added(block_to_add)
