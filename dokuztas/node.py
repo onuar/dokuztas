@@ -122,13 +122,14 @@ class NodeComponent(object):
         seçebilmesi gibi özellikleri olabilmesi ihtimalidir. Şu an için roadmap'te böyle bir özellik bulunmamaktadır.
         """
         self.miner_check()
-        self.stop_mining = False
 
         if len(self.pending_blocks) > 0:
+            self.stop_mining = False
             self._internal_mine(args=(self.pending_blocks[0],
                                       self.terminate_mining,
                                       self.block_found))
         elif len(self.pending_txs) > 0:
+            self.stop_mining = False
             temp_block = PendingBlock()
             temp_block.add_txs(self.pending_txs)
             self.pending_txs = []
@@ -146,7 +147,6 @@ class NodeComponent(object):
         _log('debug', 'node.NodeComponent.block_added')
         self.chain.blocks.append(new_block)
         if self.miner:
-            self.miner_check()
             self.stop_mining = True
             # Normal şartlar altında bu if bloguna ihtiyaç olmaması gerekiyor.
             # HTTP çalıştığımız için ve queue olmadığı için, diğer miner'lardan birisi
