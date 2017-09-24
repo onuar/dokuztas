@@ -57,13 +57,13 @@ def test_each_block_s_previous_hash_property_should_be_previous_block_s_hash(cha
 
 @mined_chain_patcher()
 def test_if_the_blocks_are_not_changed_then_chain_should_be_a_valid_chain(chain):
-    assert chain.validate() == True
+    assert chain.validate() is True
 
 
 @mined_chain_patcher()
 def test_if_a_block_is_changed_then_chain_should_not_be_a_valid_chain(chain):
     chain.blocks[1].blockhash = 'f061426fe6391873b640128bcf8abcf897f1254d09500291eb72966b263da07d'
-    assert chain.validate() == False
+    assert chain.validate() is False
 
 
 def test_if_there_is_just_one_tx_to_mine_then_its_hash_should_be_merkle_hash():
