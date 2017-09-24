@@ -52,7 +52,7 @@ def test_if_node_is_not_a_miner_then_mine_function_should_throw_minerexception()
         node.mine()
 
 
-def test_if_first_pendingblock_is_just_created_then_mineing_should_be_started_once():
+def test_if_first_pendingblock_is_just_created_then_mining_should_be_started_once():
     patcher = patch('dokuztas.node.NodeComponent.mine')
     mock = patcher.start()
     node = NodeComponent(miner=True)
@@ -78,19 +78,31 @@ def test_for_mining_it_should_be_start_new_thread():
     assert mock.called
 
 
-# def test_if_correct_hash_is_found_then_block_found_function_should_be_called_once():
-#     from dokuztas.blockchain import Blockchain, PendingBlock
-#     patcher = patch('dokuztas._internals.MiningThread.stop')
-#     mock = patcher.start()
-#     node = NodeComponent(miner=True)
-#     node.chain = Blockchain(difficulty=2)
-#     node.chain._generate_genesis()
-#     pending_block = PendingBlock()
-#     pending_block.add_txs(['a', 'b', 'c'])
-#     node.pending_blocks.append(pending_block)
-#     node.mine()
-#     patcher.stop()
-#     assert mock.called
+def test_if_correct_hash_is_found_then_block_found_function_should_be_called_once():
+    from dokuztas.blockchain import Blockchain, PendingBlock
+    patcher = patch('dokuztas.node.NodeComponent.block_found')
+    mock = patcher.start()
+    node = NodeComponent(miner=True)
+    node.chain = Blockchain(difficulty=4)
+    node.chain._generate_genesis()
+    pending_block = PendingBlock()
+    pending_block.add_txs(['a', 'b', 'c'])
+    node.pending_blocks.append(pending_block)
+
+    def sync_runner():
+        def always_mine():
+            return False
+
+        node.chain.mine(node.pending_blocks[0],
+                        always_mine,
+                        mock)
+
+    mine_patcher = patch('dokuztas.node.NodeComponent.mine', side_effect=sync_runner)
+    mine_patcher.start()
+    node.mine()
+    patcher.stop()
+    mine_patcher.stop()
+    assert mock.called
 
 
 def test_any_other_node_found_correct_hash_then_mining_should_be_stopped():
@@ -102,7 +114,6 @@ def test_any_other_node_found_correct_hash_then_mining_should_be_stopped():
     pending_block.add_txs(['a', 'b', 'c'])
     node.pending_blocks.append(pending_block)
     node.mine()
-
     block_to_add = Block(id=123, previous_hash=0, nonce=123, merkleroot=123, blockhash=111, data=['a', 'b', 'c'])
     node.block_added(block_to_add)
     assert node.chain.blocks[1].blockhash == 111

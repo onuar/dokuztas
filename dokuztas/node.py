@@ -80,6 +80,10 @@ class NodeComponent(object):
             if len(self.pending_blocks) == 1:
                 self.mine()
 
+    def block_found(self):
+        _log('dev', 'NodeComponent.mine.block_found')
+        # th_mine.stop()
+
     def mine(self):
         """
         Mine işleminin başlatıldığı yerdir. Bu işlemin blockchain objesi tarafından yönetilmemesinin sebebi,
@@ -90,15 +94,11 @@ class NodeComponent(object):
         self.miner_check()
         self.stop_mining = False
 
-        def block_found():
-            _log('dev', 'Block found called')
-            th_mine.stop()
-
         if len(self.pending_blocks) > 0:
             th_mine = MiningThread(mine_target=self.chain.mine,
                                    args=(self.pending_blocks[0],
                                          self.terminate_mining,
-                                         block_found))
+                                         self.block_found))
             th_mine.start()
 
     def block_added(self, new_block):

@@ -27,9 +27,9 @@ class MiningThread(threading.Thread):
         self.target_args = args
 
     def start(self):
-        _log('dev', 'Mining thread started')
+        _log('dev', 'MiningThread.start')
         super(MiningThread, self).start()
 
     def stop(self):
-        _log('dev', 'Mining thread stopped')
+        _log('dev', 'MiningThread.stop')
         # super(MiningThread, self).join()
