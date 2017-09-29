@@ -46,7 +46,7 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
 ```python
 source dokuztas/venv/bin/activate
 python
->>> from dokuztas.blockchain import Blockchain, Block
+>>> from dokuztas.blockchain import Blockchain, PendingBlock
 >>> chain = Blockchain()
 >>> chain._generate_genesis()
 >>> new_block = PendingBlock()
@@ -57,7 +57,9 @@ python
             'Onur, Özgen\'e 6,25 coin gönderdi',
             'Özgen, Uğur\'a 3,125 coin gönderdi']
 >>> new_block.add_txs(txs=txs)
->>> chain.mine(new_block)
+>>> def always_run():
+        return False
+>>> chain.mine(pending_block=new_block, stop_mining_check = always_run)
 ```
 
 ### Testleri çalıştırmak için
