@@ -40,6 +40,7 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
 > 5003 ve 5004 miner olarak görev yapıyor (-m parametresi).
 > 5003'ün ve 5004'ün farklı konfigürasyonlara sahip bilgisayarlar olma durumunu test edebilmek için, dokuztas.blockchain.Blockchain.mine metodundaki `Hardware spec simülasyonu` section'unu açabilirsiniz. Fakat unit test'ler çalıştırılırken, kapatılması unutulmamalıdır.
 
+> Postman kullanıyorsanız, [postman_queries.json](https://github.com/onuar/dokuztas/blob/master/postman_queries.json) dosyasını import ederek direkt test etmeye başlayabilirsiniz.
 
 ### Demo (Ledger ve mining)
 ```python
