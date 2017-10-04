@@ -33,7 +33,7 @@ class NodeComponent(object):
 
         :param node_chains: Ağdaki tüm ağlardan alınan block'lar.
         """
-        _log('info', 'Ağdaki block\'lar toplanılarak, consensus sonrası en uygun block seçildi')
+        _log('info', 'Ağdaki block\'lar toplanılarak, consensus sonrası en uygun block seçildi.')
         self.chain = Blockchain(difficulty=self.difficulty)
         self.chain.blocks = node_chains[0][1]
 
@@ -223,7 +223,7 @@ def notify_nodes(last_block):
                 requests.post(
                     'http://localhost:{0}/found'.format(node), json=data)
         except ConnectionError as conerr:
-            _log('info', '{0} porta sahip node offline olabilir'.format(node))
+            _log('info', '{0} porta sahip node offline olabilir.'.format(node))
 
 
 @app.route('/found', methods=['POST'])
@@ -267,7 +267,7 @@ def add_transaction():
 
     def exc_occurs(exc, node):
         if exc is ConnectionError:
-            _log('info', '{0} porta sahip node offline olabilir'.format(node))
+            _log('info', '{0} porta sahip node offline olabilir.'.format(node))
 
     broadcast_nodes(cb_iter=send_tx, cb_error=exc_occurs)
     return jsonify({'status': 'ok'})

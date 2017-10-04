@@ -14,8 +14,12 @@ class Blockchain:
         """
         Genesis block'u oluşturup, chain'in ilk block'u olarak ekler.
         """
-        genesis = Block(id=0, blockhash=0, previous_hash=0, nonce=0, merkleroot=0, data=['genesis'])
-        self.blocks.append(genesis)
+        genesis = PendingBlock()
+        genesis.add_txs(['genesis'])
+        def always_run():
+            return False
+
+        self.mine(genesis, always_run)
 
     def validate(self):
         """
@@ -82,13 +86,17 @@ class Blockchain:
         """
         mine_continue = True
         root_hash = self.calculate_merkle(pending_block.pending_txs)
-        last_block = self.blocks[len(self.blocks) - 1]
+
+        prv_hash_enc = '0'.encode('utf-8')
+        if len(self.blocks) > 0:
+            last_block = self.blocks[len(self.blocks) - 1]
+            prv_hash_enc = str(last_block.blockhash).encode('utf-8')
+
         nonce = 0
         sha = hasher.sha256()
         root_hash_enc = str(root_hash).encode('utf-8')
-        prv_hash_enc = str(last_block.previous_hash).encode('utf-8')
-        block_id_enc = str(last_block.id).encode('utf-8')
-        challenge_string = root_hash_enc + prv_hash_enc + block_id_enc
+
+        challenge_string = root_hash_enc + prv_hash_enc
         sha.update(challenge_string)
         difficulty_indicator = ''.join(["0" for x in range(0, self.difficulty)])
 
@@ -111,8 +119,8 @@ class Blockchain:
                 _log('info', 'Nonce bulundu! Nonce: {0} Block_hash: {1}'.format(str(nonce), blockhash))
                 mine_continue = False
                 new_id = len(self.blocks)
-                block_to_add = Block(id=new_id, blockhash=blockhash,
-                                     previous_hash=last_block.blockhash, nonce=nonce,
+                block_to_add = Block(id=new_id, blockhash=str(blockhash),
+                                     previous_hash=prv_hash_enc.decode('utf-8'), nonce=nonce,
                                      merkleroot=root_hash, data=pending_block.pending_txs)
                 self.blocks.append(block_to_add)
                 if cb_block_found:

@@ -70,10 +70,10 @@ def test_if_node_is_not_a_miner_then_mine_function_should_throw_minerexception()
 
 
 def test_if_first_pendingblock_is_just_created_then_mining_should_be_started_once():
-    patcher = patch('dokuztas.node.NodeComponent.mine')
-    mock = patcher.start()
     node = NodeComponent(miner=True)
     node.create_genesis_chain()
+    patcher = patch('dokuztas.node.NodeComponent.mine')
+    mock = patcher.start()
     for x in range(0, 200):
         node.add_transaction(x)
     patcher.stop()
@@ -126,7 +126,16 @@ def test_any_other_node_found_correct_hash_then_mining_should_be_stopped():
     from dokuztas.blockchain import Blockchain, PendingBlock, Block
     node = NodeComponent(miner=True)
     node.chain = Blockchain(difficulty=10)
-    node.chain._generate_genesis()
+
+    def adds_genesis():
+        genesis = Block(id=0, blockhash=0, previous_hash=0, nonce=0, merkleroot=0, data=['genesis'])
+        node.chain.blocks.append(genesis)
+
+    genesis_patcher = patch('dokuztas.node.NodeComponent.create_genesis_chain', side_effect=adds_genesis)
+    genesis_patcher.start()
+    node.create_genesis_chain()
+    genesis_patcher.stop()
+
     pending_block = PendingBlock()
     pending_block.add_txs(['a', 'b', 'c'])
     node.pending_blocks.append(pending_block)
@@ -165,3 +174,5 @@ def test_while_mining_new_txs_can_be_adding(node):
     # Mevcut mining'i durdurmak için.
     block_to_add = Block(id=123, previous_hash=0, nonce=123, merkleroot=123, blockhash=111, data=['a', 'b', 'c'])
     node.block_added(block_to_add)
+
+    # todo: test_if_one_block__mining_is_finised_then_other_transactions_should_get_in_a_block()

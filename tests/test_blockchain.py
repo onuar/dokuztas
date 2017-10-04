@@ -31,6 +31,12 @@ def test_when_blockchain_is_created_first_time_then_first_block_should_be_genesi
     assert chain.blocks[0].id == 0
 
 
+def test_genesis_block_should_be_mined():
+    chain = Blockchain()
+    chain._generate_genesis()
+    assert chain.blocks[0].blockhash == '00009b8539d913411b8dd95aa3a449593dc454ef0ddc87955bd48d8ff48a926a'
+
+
 def test_when_genesis_block_is_added_then_genesis_block_id_should_be_assigned_zero():
     chain = Blockchain()
     chain._generate_genesis()
@@ -40,7 +46,7 @@ def test_when_genesis_block_is_added_then_genesis_block_id_should_be_assigned_ze
 def test_genesis_block_s_previous_block_hash_should_be_assigned_zero():
     chain = Blockchain()
     chain._generate_genesis()
-    assert chain.blocks[0].previous_hash == 0
+    assert chain.blocks[0].previous_hash == '0'
 
 
 @mined_chain_patcher()
@@ -95,5 +101,5 @@ def test_mine_tester():
     p = PendingBlock()
     p.add_txs(['a', 'b', 'c', 'd', 'f'])
     chain.mine(p, always_mine)
-    assert chain.blocks[1].nonce == 13106
-    assert chain.blocks[1].blockhash == '00005df8b04cb42e62c5be0766af2caa884dd52b51b7ff1549aab3c77e88b84d'
+    assert chain.blocks[1].nonce == 98346
+    assert chain.blocks[1].blockhash == '0000ce2e9b894dcce5c482649d6f06bdb8c84215574b235cd92e616c29a02f26'
