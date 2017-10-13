@@ -69,7 +69,7 @@ python
 ## Açıklamalar
 ### node.mine()
 İlk mine işleminin tetiklenmesi, 10 tx'in eklenip, 11. tx'in gelmesi ile başlamaktadır. Bu işlem tamamlandığında, sırada bekleyen block'lar varsa bunlar mine edilir, yoksa bekleyen txs'ler mine edilmeye başlanılır. Her bekleyen 10 tx, 1 block'un içine eklenerek bekletilir. Örn:
-> 25 tane tx eklenmişse, 10'ardan iki tane block ve 5 tane block bekletilir. İlk olarak block'lar mine edilmeye başlanılır.
+> 25 tane tx eklenmişse, 10'ardan iki tane block ve 5 tane tx  bekletilir. İlk olarak block'lar mine edilmeye başlanılır.
 
 ### blockchain.calculate_merkle(txs)
 Root hash'i hesaplamak için her bir ikili elemanın hash'i alınır, bunlar ayrıca hashlenir. Eğer listedeki eleman sayısı tek sayı ise, sonuncu elemanın hash'i ayrıca hesaplanır. Çıkan hash'ler aynı fonksiyona parametre olarak tekrar gönderilir. Örn:
