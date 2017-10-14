@@ -65,7 +65,7 @@ python
 ### Testleri çalıştırmak için
     source dokuztas/venv/bin/activate
     pytest
-
+> macOs Sierra 10.12.6 (16G29) da test edilmiştir.
 ## Açıklamalar
 ### node.mine()
 İlk mine işleminin tetiklenmesi, 10 tx'in eklenip, 11. tx'in gelmesi ile başlamaktadır. Bu işlem tamamlandığında, sırada bekleyen block'lar varsa bunlar mine edilir, yoksa bekleyen txs'ler mine edilmeye başlanılır. Her bekleyen 10 tx, 1 block'un içine eklenerek bekletilir. Örn:
