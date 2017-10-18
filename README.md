@@ -18,6 +18,10 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
 
 ## Kurulum ve test
 
+### Test edilen cihazlar
+    macOs Sierra 10.12.6 (16G29)
+    Raspberry PI 1 B+
+
 ### Kurulum ihtiyaçları
     python 3.6.2
     virtualenv
@@ -42,6 +46,10 @@ Türk geliştiriciler arasında Blockchain'in daha iyi anlaşılması için yap�
 
 > Postman kullanıyorsanız, [postman_queries.json](https://github.com/onuar/dokuztas/blob/master/postman_queries.json) dosyasını import ederek direkt test etmeye başlayabilirsiniz.
 
+ya da
+
+> `curl -d '{"tx":"1 Turkcoin from A to B"}' -H "Content-Type: application/json" -X POST http://127.0.0.1:5002/add`
+
 ### Demo (Ledger ve mining)
 ```python
 source dokuztas/venv/bin/activate
@@ -65,11 +73,11 @@ python
 ### Testleri çalıştırmak için
     source dokuztas/venv/bin/activate
     pytest
-> macOs Sierra 10.12.6 (16G29) da test edilmiştir.
+
 ## Açıklamalar
 ### node.mine()
 İlk mine işleminin tetiklenmesi, 10 tx'in eklenip, 11. tx'in gelmesi ile başlamaktadır. Bu işlem tamamlandığında, sırada bekleyen block'lar varsa bunlar mine edilir, yoksa bekleyen txs'ler mine edilmeye başlanılır. Her bekleyen 10 tx, 1 block'un içine eklenerek bekletilir. Örn:
-> 25 tane tx eklenmişse, 10'ardan iki tane block ve 5 tane tx  bekletilir. İlk olarak block'lar mine edilmeye başlanılır.
+> 25 tane tx eklenmişse, 10'ardan iki tane block ve 5 tane tx bekletilir. İlk olarak block'lar mine edilmeye başlanılır.
 
 ### blockchain.calculate_merkle(txs)
 Root hash'i hesaplamak için her bir ikili elemanın hash'i alınır, bunlar ayrıca hashlenir. Eğer listedeki eleman sayısı tek sayı ise, sonuncu elemanın hash'i ayrıca hesaplanır. Çıkan hash'ler aynı fonksiyona parametre olarak tekrar gönderilir. Örn:
