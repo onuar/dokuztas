@@ -21,6 +21,7 @@ Türk geliştiriciler arasında blockchain'in (blockzinciri) daha iyi anlaşıla
 ### Test edilen cihazlar
     macOs Sierra 10.12.6 (16G29)
     Raspberry PI 1 B+
+    Ubuntu 16.04 LTS
 
 ### Kurulum ihtiyaçları
     python 3.6.2
@@ -88,7 +89,7 @@ Root hash'i hesaplamak için her bir ikili elemanın hash'i alınır, bunlar ayr
 sırada bekleyen txs'lerin merkle root hash'lerini hesaplamak ve block'a eklemek içindir.
  
 ## Yol haritası
-* Windows ve Linux dağıtımlarından birinde test edilip, README sayfasının buna uygun değiştirilmesi.
+* Windows dağıtımlarından birinde test edilip, README sayfasının buna uygun değiştirilmesi.
 * README'ye, bu projeye teknik anlamda nasıl destek verilebileceği ile ilgili bir bilgi eklemek.
 
 ### Eklenecek özellikler
