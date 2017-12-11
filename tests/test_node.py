@@ -77,7 +77,7 @@ def test_if_first_pendingblock_is_just_created_then_mining_should_be_started_onc
     for x in range(0, 200):
         node.add_transaction(x)
     patcher.stop()
-    mock.assert_called_once()
+    mock.assert_called_once_with()
 
 
 def test_for_mining_it_should_be_start_new_thread():
