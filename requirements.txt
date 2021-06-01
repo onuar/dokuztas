@@ -10,5 +10,5 @@ MarkupSafe==1.0
 py==1.4.34
 pytest==3.2.2
 requests==2.20.0
-urllib3==1.22
+urllib3==1.26.5
 Werkzeug==0.15.3
